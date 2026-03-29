@@ -1,5 +1,6 @@
 'use client';
 
+import {useSmoothedPosition} from '@/hooks/useSmoothedPosition';
 import {useSelectedMower} from '@/stores/mowersStore';
 import type {Datum} from '@/stores/schemas';
 import MapMarker from './MapMarker';
@@ -40,16 +41,17 @@ interface MowerMarkerProps {
 
 export default function MowerMarker({datum, isDocked}: MowerMarkerProps) {
   const position = useSelectedMower((s) => s?.position ?? s?.state.pose);
+  const smoothedPosition = useSmoothedPosition(position ?? null);
   const accuracy = useSelectedMower((s) => s?.state.pose.pos_accuracy);
 
-  if (!position || isDocked) return null;
+  if (!smoothedPosition || isDocked) return null;
 
   const markerColor = accuracy === 0 ? '#F44336' : '#4CAF50';
 
   return (
     <MapMarker
-      position={position}
-      heading={position.heading}
+      position={smoothedPosition}
+      heading={smoothedPosition?.heading ?? 0}
       sizeM={MOWER_LENGTH_M}
       datum={datum}
       className="mower-marker"
