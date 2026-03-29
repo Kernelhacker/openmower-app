@@ -17,11 +17,13 @@ import {
   legacyMapSchema,
   mapDefaults,
   mapSchema,
+  positionSchema,
   stateDefaults,
   stateSchema,
   type Capabilities,
   type Datum,
   type MapData,
+  type Position,
   type State,
 } from './schemas';
 
@@ -41,6 +43,7 @@ class Mower {
   state: State = stateDefaults;
   map: MapData = mapDefaults;
   params: Record<string, unknown> = {};
+  position: Position | null = null;
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
     this.id = config.id;
@@ -140,6 +143,7 @@ export const useMowersStore = create<MowersStore>()(
             client.subscribe(clientMower.prefix + 'map/json');
             client.subscribe(clientMower.prefix + 'rpc/response');
             client.subscribe(clientMower.prefix + 'params/json');
+            client.subscribe(clientMower.prefix + 'position/json');
           }
         });
 
@@ -170,6 +174,10 @@ export const useMowersStore = create<MowersStore>()(
                 const mower = state.mowers[idx];
                 mower.params = JSON.parse(payload.toString()) as Record<string, unknown>;
                 mower.map.datum ??= mower.getDatumFromParams();
+              });
+            } else if (partialTopic === 'position/json') {
+              set((state) => {
+                state.mowers[idx].position = positionSchema.parse(JSON.parse(payload.toString()));
               });
             }
           }
