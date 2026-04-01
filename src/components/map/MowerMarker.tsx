@@ -2,7 +2,7 @@
 
 import {useSmoothedPosition} from '@/hooks/useSmoothedPosition';
 import {useSelectedMower} from '@/stores/mowersStore';
-import type {Datum} from '@/stores/schemas';
+import type {Datum, Position} from '@/stores/schemas';
 import MapMarker from './MapMarker';
 
 export const MOWER_LENGTH_M = 0.55;
@@ -35,12 +35,12 @@ export function MowerArrow({scale = 1, fill}: MowerArrowProps) {
 }
 
 interface MowerMarkerProps {
+  position?: Position;
   datum: Datum;
   isDocked: boolean;
 }
 
-export default function MowerMarker({datum, isDocked}: MowerMarkerProps) {
-  const position = useSelectedMower((s) => s?.position ?? s?.state.pose);
+export default function MowerMarker({position, datum, isDocked}: MowerMarkerProps) {
   const smoothedPosition = useSmoothedPosition(position ?? null);
   const accuracy = useSelectedMower((s) => s?.state.pose?.pos_accuracy);
 
