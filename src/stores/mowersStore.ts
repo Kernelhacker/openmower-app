@@ -24,7 +24,7 @@ import {
   type Datum,
   type MapData,
   type Position,
-  type State,
+  type StateOptionalPose,
 } from './schemas';
 
 export type MqttStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'offline';
@@ -40,7 +40,7 @@ class Mower {
   readonly mqttPrefix: string;
   readonly rpc: OpenMowerRpc;
   capabilities: Capabilities = {};
-  state: State = stateDefaults;
+  state: StateOptionalPose = stateDefaults;
   map: MapData = mapDefaults;
   params: Record<string, unknown> = {};
   position: Position | null = null;

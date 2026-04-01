@@ -42,7 +42,7 @@ interface MowerMarkerProps {
 export default function MowerMarker({datum, isDocked}: MowerMarkerProps) {
   const position = useSelectedMower((s) => s?.position ?? s?.state.pose);
   const smoothedPosition = useSmoothedPosition(position ?? null);
-  const accuracy = useSelectedMower((s) => s?.state.pose.pos_accuracy);
+  const accuracy = useSelectedMower((s) => s?.state.pose?.pos_accuracy);
 
   if (!smoothedPosition || isDocked) return null;
 

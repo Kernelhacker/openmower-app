@@ -46,6 +46,7 @@ export const stateSchema = z.object({
 });
 
 export type State = z.infer<typeof stateSchema>;
+export type StateOptionalPose = Omit<State, 'pose'> & {pose?: State['pose']};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Map
@@ -145,7 +146,7 @@ export const mapDefaults: MapData = {
 
 export const fallbackDatum = {lat: 48.0, long: 11.0, height: 0} satisfies Datum;
 
-export const stateDefaults: State = {
+export const stateDefaults: StateOptionalPose = {
   battery_percentage: 100,
   current_action_progress: 0.0,
   current_area: -1,
@@ -156,12 +157,5 @@ export const stateDefaults: State = {
   emergency: false,
   gps_percentage: 0.0,
   is_charging: false,
-  pose: {
-    heading: 0,
-    heading_accuracy: 0,
-    heading_valid: false,
-    pos_accuracy: 0,
-    x: 0,
-    y: 0,
-  },
+  pose: undefined,
 };
