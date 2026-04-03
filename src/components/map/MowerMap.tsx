@@ -297,7 +297,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
         {mapData.docking_stations.map((station) => (
           <DockingStationMarker key={station.id} station={station} datum={datumOrFallback} isDocked={isDocked} />
         ))}
-        <MowerMarker position={mowerPosition} datum={datumOrFallback} isDocked={isDocked} />
+        {mowerPosition && !isDocked && <MowerMarker position={mowerPosition} datum={datumOrFallback} />}
         {showTeleop && <TeleopControls />}
         <DialogOutlet />
       </RMap>

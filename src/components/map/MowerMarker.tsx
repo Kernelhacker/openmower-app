@@ -35,16 +35,13 @@ export function MowerArrow({scale = 1, fill}: MowerArrowProps) {
 }
 
 interface MowerMarkerProps {
-  position?: Position;
+  position: Position;
   datum: Datum;
-  isDocked: boolean;
 }
 
-export default function MowerMarker({position, datum, isDocked}: MowerMarkerProps) {
-  const smoothedPosition = useSmoothedPosition(position ?? null);
+export default function MowerMarker({position, datum}: MowerMarkerProps) {
+  const smoothedPosition = useSmoothedPosition(position);
   const accuracy = useSelectedMower((s) => s?.state.pose?.pos_accuracy);
-
-  if (!smoothedPosition || isDocked) return null;
 
   const markerColor = accuracy === 0 ? '#F44336' : '#4CAF50';
 

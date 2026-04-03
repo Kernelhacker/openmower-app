@@ -14,10 +14,10 @@ interface Position {
  * loop — instead we just update the target ref and let the running loop converge.
  * Heading is interpolated via the shortest angular path.
  */
-export function useSmoothedPosition(target: Position | null, halfLifeMs = 75): Position | null {
-  const [smoothed, setSmoothed] = useState<Position | null>(target);
-  const currentRef = useRef<Position | null>(null);
-  const targetRef = useRef<Position | null>(target);
+export function useSmoothedPosition(target: Position, halfLifeMs = 75): Position {
+  const [smoothed, setSmoothed] = useState<Position>(target);
+  const currentRef = useRef<Position | undefined>(undefined);
+  const targetRef = useRef<Position>(target);
   const rafRef = useRef<number | null>(null);
   const lastTimestampRef = useRef<number | null>(null);
 
@@ -25,18 +25,8 @@ export function useSmoothedPosition(target: Position | null, halfLifeMs = 75): P
   targetRef.current = target;
 
   useEffect(() => {
-    if (target === null) {
-      setSmoothed(null);
-      currentRef.current = null;
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      return;
-    }
-
     // Snap on first value
-    if (currentRef.current === null) {
+    if (currentRef.current === undefined) {
       currentRef.current = target;
       setSmoothed(target);
     }
@@ -50,10 +40,7 @@ export function useSmoothedPosition(target: Position | null, halfLifeMs = 75): P
       const t = targetRef.current;
       const c = currentRef.current;
 
-      if (t === null || c === null) {
-        rafRef.current = null;
-        return;
-      }
+      if (t === undefined || c === undefined) { rafRef.current = null; return; }
 
       const dt = lastTimestampRef.current !== null ? timestamp - lastTimestampRef.current : 0;
       lastTimestampRef.current = timestamp;
@@ -105,5 +92,5 @@ export function useSmoothedPosition(target: Position | null, halfLifeMs = 75): P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
 
-  return smoothed;
+  return smoothed ?? target;
 }
