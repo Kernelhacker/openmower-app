@@ -1,4 +1,5 @@
 import type {MowerConfig} from '@/components/types';
+import type {TrackAttributes} from '@/hooks/useTrack';
 import {OpenMowerRpc} from '@/lib/rpc';
 import {generateId} from '@/utils/area-utils';
 import {BSON} from 'bson';
@@ -44,6 +45,7 @@ class Mower {
   map: MapData = mapDefaults;
   params: Record<string, unknown> = {};
   position: Position | null = null;
+  trackAttributes: TrackAttributes = {bladesOn: true};
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
     this.id = config.id;
