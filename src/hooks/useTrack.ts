@@ -50,12 +50,13 @@ const COMPACTION_THRESHOLD = 60; // Threshold to move raw points to history
 const CONTEXT = 10; // Padded window for RDP boundary stability
 
 // --- Decimation ---
-const DIST_THRESHOLD = 0.1; // metres — minimum movement to keep a point
+const DIST_THRESHOLD = 0.1; // 10 cm — minimum movement to keep a point
+const NOISE_DIST_THRESHOLD = 0.03; // 3 cm — minimum movement to trust heading vector
 const HEADING_THRESHOLD_RAD = 8 * (Math.PI / 180); // 8° heading change
 const HEARTBEAT_POSITIONS = 10;
 
 // --- RDP ---
-const RDP_EPSILON = 0.01; // Stay fairly close to the original path
+const RDP_EPSILON = 0.01; // 1 cm — stay fairly close to the original path
 
 export type TrackAttributes = {bladesOn?: boolean};
 
@@ -136,7 +137,13 @@ function compactToHistory(state: PipelineState, utmDatum: UtmPoint, flushAll = f
     return;
   }
 
-  const decimated = decimateFilter(window, DIST_THRESHOLD, HEADING_THRESHOLD_RAD, HEARTBEAT_POSITIONS);
+  const decimated = decimateFilter(
+    window,
+    DIST_THRESHOLD,
+    NOISE_DIST_THRESHOLD,
+    HEADING_THRESHOLD_RAD,
+    HEARTBEAT_POSITIONS,
+  );
   const simplified = rdpSimplify(decimated, RDP_EPSILON);
   const mainSet = new Set(main);
   const committed = simplified.filter((p) => mainSet.has(p));
