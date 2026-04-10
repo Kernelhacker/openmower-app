@@ -123,16 +123,19 @@ export type LegacyArea = z.infer<typeof legacyAreaSchema>;
 export type LegacyMapData = z.infer<typeof legacyMapSchema>;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Position (from position/json topic: [x, y, heading])
+// Position (from position/json topic)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const positionSchema = z.tuple([z.number(), z.number(), z.number()]).transform(([x, y, heading]) => ({
-  x,
-  y,
-  heading,
-}));
+export const positionSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  heading: z.number(),
+  attributes: z.object({
+    blades: z.boolean(),
+  }),
+});
 
-export type Position = z.infer<typeof positionSchema>;
+export type Position = Omit<z.infer<typeof positionSchema>, 'attributes'>;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Defaults
