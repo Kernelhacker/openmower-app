@@ -18,6 +18,7 @@ export interface AreaItemProps {
   selected?: boolean;
   showDragHandle?: boolean;
   onSelect?: (id: string, e: React.MouseEvent) => void;
+  dragCount?: number;
 }
 
 interface SortableItemProps {
@@ -32,6 +33,7 @@ export default function AreaItem({
   selected = false,
   showDragHandle = false,
   onSelect,
+  dragCount,
   ref,
   style,
   listeners,
@@ -41,6 +43,7 @@ export default function AreaItem({
   const theme = useTheme();
   const inactive = area.properties.active === false;
   const {icon: Icon, color, strokeWidth} = TYPE_CONFIG[area.properties.type ?? 'draft'];
+  const isGroupDragPlaceholder = !!dragCount && dragCount > 0;
   return (
     <ListItem
       style={style}
@@ -59,7 +62,7 @@ export default function AreaItem({
               : theme.palette.secondary.dark
             : undefined,
         color: dragging || selected ? theme.palette.secondary.contrastText : undefined,
-        opacity: inactive ? 0.5 : 1,
+        opacity: dragCount === 0 ? 0.25 : inactive ? 0.5 : 1,
         touchAction: 'none',
         '&:last-child': {
           borderBottom: 'none',
@@ -71,17 +74,19 @@ export default function AreaItem({
       }}
     >
       <Box sx={{width: '100%', display: 'flex'}}>
-        <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', pl: 2, color}}>
-          <Icon size={18} strokeWidth={strokeWidth} />
+        <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', pl: 2, color: isGroupDragPlaceholder ? undefined : color}}>
+          {!isGroupDragPlaceholder && <Icon size={18} strokeWidth={strokeWidth} />}
         </Box>
         <Box sx={{flex: 1, px: 1.5, py: 1, opacity: dragging ? 0.4 : 1.0}}>
           <Typography variant="h6" fontWeight="600">
-            {area.properties.name ?? 'Unnamed area'}
+            {isGroupDragPlaceholder ? `${dragCount} areas` : (area.properties.name ?? 'Unnamed area')}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {formatAreaSize(turfArea(area.geometry))}
-            {area.properties.type === 'mow' ? ' • Last mowed: Never' : ''}
-          </Typography>
+          {!isGroupDragPlaceholder && (
+            <Typography variant="caption" color="text.secondary">
+              {formatAreaSize(turfArea(area.geometry))}
+              {area.properties.type === 'mow' ? ' • Last mowed: Never' : ''}
+            </Typography>
+          )}
         </Box>
         {showDragHandle && (
           <Box

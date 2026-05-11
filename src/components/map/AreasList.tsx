@@ -1,13 +1,13 @@
 // import {useMapContext} from '@/contexts/MapContext'; // TODO: Uncomment when implementing persistence
-import {withDisplaySortKeys, useMap, useMapboxDraw, useMapContext, useMapSelection} from '@/contexts/MapContext';
+import {useMap, useMapboxDraw, useMapContext, useMapSelection, withDisplaySortKeys} from '@/contexts/MapContext';
 import {AreaProps} from '@/stores/schemas';
-import {DndContext, DragEndEvent, DragOverlay} from '@dnd-kit/core';
+import {DndContext, DragEndEvent, DragOverlay, type DragStartEvent} from '@dnd-kit/core';
 import {restrictToFirstScrollableAncestor, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {Card, CardContent, CardHeader, List, useTheme} from '@mui/material';
 import {featureCollection} from '@turf/helpers';
 import {Feature, Polygon} from 'geojson';
-import {useRef} from 'react';
+import {useRef, useState} from 'react';
 import SortableAreaItem from './edit/SortableAreaItem';
 
 function rangeIndices(ids: string[], a: string, b: string): [number, number] {
@@ -23,6 +23,11 @@ export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]
   const draw = useMapboxDraw();
   const map = useMap();
   const anchorId = useRef<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
   const selectFeatures = (featureIds: string[]) => {
     if (!draw || !map) return;
@@ -58,15 +63,42 @@ export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
     const {active, over} = event;
-    if (over?.id !== undefined && active.id !== over.id) {
-      setFeatures((draft) => {
-        const oldIndex = draft.features.findIndex((item) => item.id === active.id);
-        const newIndex = draft.features.findIndex((item) => item.id === over?.id);
+    if (over?.id === undefined || active.id === over.id) return;
+
+    const activeItemId = active.id as string;
+    const overId = over.id as string;
+    const draggedIsSelected = selectedIds.includes(activeItemId);
+
+    setFeatures((draft) => {
+      const oldIndex = draft.features.findIndex((f) => f.id === activeItemId);
+      const newIndex = draft.features.findIndex((f) => f.id === overId);
+
+      if (draggedIsSelected && selectedIds.length > 1) {
+        const selected = new Set(selectedIds);
+        const group = draft.features.filter((f) => selected.has(f.id as string));
+        const rest = draft.features.filter((f) => !selected.has(f.id as string));
+        const overIdxInRest = rest.findIndex((f) => f.id === overId);
+        if (overIdxInRest !== -1) {
+          const insertAt = overIdxInRest + (newIndex > oldIndex ? 1 : 0);
+          rest.splice(insertAt, 0, ...group);
+          draft.features = rest;
+        }
+      } else {
         draft.features = arrayMove(draft.features, oldIndex, newIndex);
-        draw?.set(withDisplaySortKeys(featureCollection(draft.features)));
-      });
-    }
+      }
+      draw?.set(withDisplaySortKeys(featureCollection(draft.features)));
+    });
+  };
+
+  const isMultiDrag = activeId !== null && selectedIds.includes(activeId) && selectedIds.length > 1;
+
+  const getDragCount = (areaId: string) => {
+    if (!isMultiDrag) return undefined;
+    if (areaId === activeId) return selectedIds.length;
+    if (selectedIds.includes(areaId)) return 0;
+    return undefined;
   };
 
   return (
@@ -83,7 +115,11 @@ export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]
       />
       <CardContent sx={{flex: 1, p: 0, overflowY: 'auto', '&:last-child': {pb: 0}}}>
         <List sx={{minHeight: '100%', p: 0, userSelect: 'none'}}>
-          <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}>
+          <DndContext
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
+          >
             <SortableContext items={areas.map((area) => area.id as string)} strategy={verticalListSortingStrategy}>
               {areas.map((area) => (
                 <SortableAreaItem
@@ -92,6 +128,7 @@ export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]
                   selected={selectedIds.includes(area.id as string)}
                   showDragHandle={editMode}
                   onSelect={handleSelect}
+                  dragCount={getDragCount(area.id as string)}
                 />
               ))}
             </SortableContext>
