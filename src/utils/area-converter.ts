@@ -13,9 +13,10 @@ import {featureCollection, polygon} from '@turf/helpers';
 import type {Feature, FeatureCollection, Polygon} from 'geojson';
 import {produce} from 'immer';
 
-// Remove consecutive duplicate or near-duplicate points (within 1mm) — floating point artifacts from the mower.
+// Remove consecutive duplicate or near-duplicate points — floating point artifacts from the mower,
+// including low-precision truncated coordinates (~2mm apart in meter-space).
 // Compares against the last *kept* point so removal is transitive.
-const DEDUPE_EPSILON = 0.001; // meters
+const DEDUPE_EPSILON = 0.003; // meters (3mm)
 function dedupePoints(points: RelativePoint[]): RelativePoint[] {
   return points.reduce<RelativePoint[]>((acc, p) => {
     const prev = acc[acc.length - 1];
