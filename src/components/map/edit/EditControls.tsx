@@ -1,4 +1,4 @@
-import {withDisplaySortKeys, useMapboxDraw, useMapContext, useMapSelection} from '@/contexts/MapContext';
+import {useMapboxDraw, useMapContext, useMapSelection, withDisplaySortKeys} from '@/contexts/MapContext';
 import type {AreaFeature} from '@/types/geojson';
 import {removeMiniCoords} from '@/utils/area-utils';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
@@ -63,6 +63,8 @@ export default function EditControls({
     try {
       await saveMapToMower();
       setEditMode(false);
+    } catch (error) {
+      console.error('Error saving map to mower:', error);
     } finally {
       setIsSaving(false);
     }

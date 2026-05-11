@@ -36,12 +36,7 @@ export default function MapPage() {
   }, [draw, mapData, editMode, setFeatures]);
 
   const saveMapToMower = useCallback(async () => {
-    try {
-      await rpc?.map.replace(featuresToMap(mapData!, features));
-      // TODO: Show success toast
-    } catch (error) {
-      console.error('Error saving map to mower:', error);
-    }
+    await rpc!.map.replace(featuresToMap(mapData!, features));
   }, [rpc, mapData, features]);
 
   const areas = useMemo(
