@@ -17,6 +17,7 @@ export interface AreaItemProps {
   area: Feature<Polygon, AreaProps>;
   selected?: boolean;
   showDragHandle?: boolean;
+  onSelect?: (id: string, e: React.MouseEvent) => void;
 }
 
 interface SortableItemProps {
@@ -30,6 +31,7 @@ export default function AreaItem({
   area,
   selected = false,
   showDragHandle = false,
+  onSelect,
   ref,
   style,
   listeners,
@@ -43,6 +45,7 @@ export default function AreaItem({
     <ListItem
       style={style}
       {...props}
+      onClick={onSelect ? (e) => onSelect(area.id as string, e) : undefined}
       sx={{
         p: 0,
         cursor: 'pointer',
@@ -84,6 +87,7 @@ export default function AreaItem({
           <Box
             ref={ref}
             {...listeners}
+            onClick={(e) => e.stopPropagation()}
             sx={{
               cursor: 'grab',
               display: 'flex',
