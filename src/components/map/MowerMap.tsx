@@ -1,6 +1,6 @@
 'use client';
 
-import {useMapboxDraw, useMapContext} from '@/contexts/MapContext';
+import {useMapboxDraw, useMapContext, useMapHover} from '@/contexts/MapContext';
 import {useSelectedMower} from '@/stores/mowersStore';
 import {fallbackDatum, MapData, type AreaProps} from '@/stores/schemas';
 import type {AreaFeature} from '@/types/geojson';
@@ -44,6 +44,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
   const {id, editMode, setEditMode, features, setFeatures, drawWorkflow, setDrawWorkflow} = useMapContext();
   const mapRef = useRef<Map>(null);
   const draw = useMapboxDraw();
+  const [hoveredId, setHoveredId] = useMapHover();
   const currentState = useSelectedMower((s) => s?.state.current_state);
   const isDocked = useSelectedMower((s) => s?.state.is_charging ?? false);
   const showTeleop = currentState === 'AREA_RECORDING' && !editMode;
@@ -83,6 +84,114 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
       fitToBounds(true);
     }
   }, [features, mapData.datum, editMode, fitToBounds]);
+
+  // Mirror source for hover hit-testing. Uses promoteId so layer-scoped mouse
+  // events return a usable string id.
+  const hoverSourceReady = useRef(false);
+
+  const getPolygonData = useCallback((): GeoJSON.FeatureCollection => ({
+    type: 'FeatureCollection',
+    features: features.features
+      .filter((f) => f.geometry.type === 'Polygon')
+      .map((f) => ({...f, id: f.id, properties: {...f.properties, id: f.id}})),
+  }), [features]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !draw) return;
+
+    const onMouseMove = (e: {features?: {id?: string | number}[]}) => {
+      const fid = e.features?.[0]?.id != null ? String(e.features[0].id) : null;
+      // eslint-disable-next-line no-console
+      console.log('[hover] mousemove on areas-hover-fill, fid:', fid, 'features:', e.features);
+      setHoveredId(fid);
+    };
+    const onMouseLeave = () => {
+      // eslint-disable-next-line no-console
+      console.log('[hover] mouseleave areas-hover-fill');
+      setHoveredId(null);
+    };
+
+    const setup = () => {
+      const data = getPolygonData();
+      // eslint-disable-next-line no-console
+      console.log('[hover] setup — isStyleLoaded:', map.isStyleLoaded(), 'features:', data.features.length);
+      if (map.getSource('areas-hover')) {
+        // eslint-disable-next-line no-console
+        console.log('[hover] source already exists, skipping');
+        return;
+      }
+      map.addSource('areas-hover', {type: 'geojson', data, promoteId: 'id'} as Parameters<typeof map.addSource>[1]);
+      map.addLayer({
+        id: 'areas-hover-fill',
+        type: 'fill',
+        source: 'areas-hover',
+        paint: {'fill-color': 'transparent', 'fill-opacity': 0},
+      });
+      // eslint-disable-next-line no-console
+      console.log('[hover] layer added. layers:', map.getStyle().layers?.map((l) => l.id));
+      hoverSourceReady.current = true;
+      map.on('mousemove', 'areas-hover-fill', onMouseMove);
+      map.on('mouseleave', 'areas-hover-fill', onMouseLeave);
+    };
+
+    // eslint-disable-next-line no-console
+    console.log('[hover] effect run — isStyleLoaded:', map.isStyleLoaded(), 'draw:', !!draw);
+    if (map.isStyleLoaded()) {
+      setup();
+    } else {
+      map.once('style.load', setup);
+    }
+
+    return () => {
+      map.off('style.load', setup);
+      map.off('mousemove', 'areas-hover-fill', onMouseMove);
+      map.off('mouseleave', 'areas-hover-fill', onMouseLeave);
+      setHoveredId(null);
+      try {
+        if (map.getLayer('areas-hover-fill')) map.removeLayer('areas-hover-fill');
+        if (map.getSource('areas-hover')) map.removeSource('areas-hover');
+      } catch { /* map may be destroyed */ }
+      hoverSourceReady.current = false;
+    };
+  }, [draw]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep mirror source in sync with features.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !hoverSourceReady.current) return;
+    const src = map.getSource('areas-hover') as {setData?: (d: GeoJSON.FeatureCollection) => void} | undefined;
+    src?.setData?.(getPolygonData());
+  }, [features, getPolygonData]);
+
+  // Stamp user_hovered on Draw features so drawStyles can react to it.
+  const prevHoveredIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[hover] hoveredId changed:', hoveredId);
+    if (!draw) return;
+    const prev = prevHoveredIdRef.current;
+    prevHoveredIdRef.current = hoveredId;
+
+    if (prev && prev !== hoveredId) {
+      const prevFeature = draw.get(prev);
+      // eslint-disable-next-line no-console
+      console.log('[hover] clearing prev:', prev, 'found:', !!prevFeature);
+      if (prevFeature) {
+        draw.setFeatureProperty(prev, 'hovered', false);
+        draw.add(draw.get(prev)!);
+      }
+    }
+    if (hoveredId) {
+      const feature = draw.get(hoveredId);
+      // eslint-disable-next-line no-console
+      console.log('[hover] setting new:', hoveredId, 'found:', !!feature);
+      if (feature) {
+        draw.setFeatureProperty(hoveredId, 'hovered', true);
+        draw.add(draw.get(hoveredId)!);
+      }
+    }
+  }, [hoveredId, draw]);
 
   const handleFeaturesCreated = useCallback(
     (createdFeatures: Feature[]) => {

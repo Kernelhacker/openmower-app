@@ -28,6 +28,8 @@ interface MapContextType {
   canRedo: boolean;
   undo: () => FeatureCollection | null;
   redo: () => FeatureCollection | null;
+  hoveredId: string | null;
+  setHoveredId: Dispatch<SetStateAction<string | null>>;
 }
 
 interface SplitPolygonWorkflow {
@@ -62,6 +64,7 @@ export const MapContextProvider = ({id, children}: {id: string; children: React.
   const [drawWorkflow, setDrawWorkflow] = useImmer<Workflow | null>(null);
   const [trashEnabled, setTrashEnabled] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [past, setPast] = useState<FeatureCollection[]>([]);
   const [future, setFuture] = useState<FeatureCollection[]>([]);
 
@@ -129,6 +132,8 @@ export const MapContextProvider = ({id, children}: {id: string; children: React.
         canRedo: future.length > 0,
         undo,
         redo,
+        hoveredId,
+        setHoveredId,
       }}
     >
       {children}
@@ -152,6 +157,11 @@ export function useMap() {
 export function useMapboxDraw() {
   const map = useMap();
   return map?._controls.find((control) => control instanceof MapboxDraw) ?? null;
+}
+
+export function useMapHover(): [string | null, Dispatch<SetStateAction<string | null>>] {
+  const {hoveredId, setHoveredId} = useMapContext();
+  return [hoveredId, setHoveredId];
 }
 
 export function useMapSelection() {

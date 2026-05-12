@@ -16,8 +16,11 @@ const TYPE_CONFIG: Record<AreaProps['type'], {icon: LucideIcon; color: string; s
 export interface AreaItemProps {
   area: Feature<Polygon, AreaProps>;
   selected?: boolean;
+  hovered?: boolean;
   showDragHandle?: boolean;
   onSelect?: (id: string, e: React.MouseEvent) => void;
+  onMouseEnter?: React.MouseEventHandler;
+  onMouseLeave?: React.MouseEventHandler;
   dragCount?: number;
 }
 
@@ -31,8 +34,11 @@ interface SortableItemProps {
 export default function AreaItem({
   area,
   selected = false,
+  hovered = false,
   showDragHandle = false,
   onSelect,
+  onMouseEnter,
+  onMouseLeave,
   dragCount,
   ref,
   style,
@@ -49,6 +55,8 @@ export default function AreaItem({
       style={style}
       {...props}
       onClick={onSelect ? (e) => onSelect(area.id as string, e) : undefined}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       sx={{
         p: 0,
         cursor: 'pointer',
@@ -60,7 +68,9 @@ export default function AreaItem({
             ? theme.palette.mode === 'dark'
               ? theme.palette.secondary.main
               : theme.palette.secondary.dark
-            : undefined,
+            : hovered
+              ? theme.palette.secondary.main
+              : undefined,
         color: dragging || selected ? theme.palette.secondary.contrastText : undefined,
         opacity: dragCount === 0 ? 0.25 : inactive ? 0.5 : 1,
         touchAction: 'none',

@@ -1,5 +1,5 @@
 // import {useMapContext} from '@/contexts/MapContext'; // TODO: Uncomment when implementing persistence
-import {useMap, useMapboxDraw, useMapContext, useMapSelection, withDisplaySortKeys} from '@/contexts/MapContext';
+import {useMap, useMapboxDraw, useMapContext, useMapSelection, useMapHover, withDisplaySortKeys} from '@/contexts/MapContext';
 import {AreaProps} from '@/stores/schemas';
 import {DndContext, DragEndEvent, DragOverlay, type DragStartEvent} from '@dnd-kit/core';
 import {restrictToFirstScrollableAncestor, restrictToVerticalAxis} from '@dnd-kit/modifiers';
@@ -19,6 +19,7 @@ function rangeIndices(ids: string[], a: string, b: string): [number, number] {
 export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]}) {
   const theme = useTheme();
   const selectedIds = useMapSelection();
+  const [hoveredId, setHoveredId] = useMapHover();
   const {editMode, setFeatures} = useMapContext();
   const draw = useMapboxDraw();
   const map = useMap();
@@ -126,9 +127,12 @@ export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]
                   key={area.id}
                   area={area}
                   selected={selectedIds.includes(area.id as string)}
+                  hovered={hoveredId === (area.id as string)}
                   showDragHandle={editMode}
                   onSelect={handleSelect}
                   dragCount={getDragCount(area.id as string)}
+                  onMouseEnter={() => setHoveredId(area.id as string)}
+                  onMouseLeave={() => setHoveredId(null)}
                 />
               ))}
             </SortableContext>
