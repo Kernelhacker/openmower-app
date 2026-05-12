@@ -1,12 +1,20 @@
 // import {useMapContext} from '@/contexts/MapContext'; // TODO: Uncomment when implementing persistence
-import {useMap, useMapboxDraw, useMapContext, useMapSelection, useMapHover, withDisplaySortKeys} from '@/contexts/MapContext';
+import {
+  useMap,
+  useMapboxDraw,
+  useMapContext,
+  useMapHover,
+  useMapSelection,
+  withDisplaySortKeys,
+} from '@/contexts/MapContext';
 import {AreaProps} from '@/stores/schemas';
 import {DndContext, DragEndEvent, DragOverlay, type DragStartEvent} from '@dnd-kit/core';
 import {restrictToFirstScrollableAncestor, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import {Card, CardContent, CardHeader, List, useTheme} from '@mui/material';
+import {Card, CardContent, CardHeader, IconButton, List, useTheme} from '@mui/material';
 import {featureCollection} from '@turf/helpers';
 import {Feature, Polygon} from 'geojson';
+import {XIcon} from 'lucide-react';
 import {useRef, useState} from 'react';
 import SortableAreaItem from './edit/SortableAreaItem';
 
@@ -16,7 +24,7 @@ function rangeIndices(ids: string[], a: string, b: string): [number, number] {
   return [Math.min(ai, bi), Math.max(ai, bi)];
 }
 
-export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]}) {
+export default function AreasList({areas, onClose}: {areas: Feature<Polygon, AreaProps>[]; onClose?: () => void}) {
   const theme = useTheme();
   const selectedIds = useMapSelection();
   const [hoveredId, setHoveredId] = useMapHover();
@@ -106,12 +114,19 @@ export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]
     <Card sx={{height: '100%', display: 'flex', flexDirection: 'column', border: 0}}>
       <CardHeader
         title="Areas"
+        action={
+          onClose && (
+            <IconButton size="small" onClick={onClose} sx={{color: theme.palette.primary.contrastText, mr: -1}}>
+              <XIcon size={18} />
+            </IconButton>
+          )
+        }
         sx={{
           py: 1,
           backgroundColor: theme.palette.primary.main,
           color: theme.palette.primary.contrastText,
-          pointerEvents: 'none',
           userSelect: 'none',
+          '& .MuiCardHeader-action': {alignSelf: 'center', m: 0},
         }}
       />
       <CardContent sx={{flex: 1, p: 0, overflowY: 'auto', '&:last-child': {pb: 0}}}>

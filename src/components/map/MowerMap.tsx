@@ -92,12 +92,12 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
   const getPolygonData = useCallback(
     () =>
       featureCollection(
-features.features
-      .filter((f) => f.geometry.type === 'Polygon')
-      .map((f) => ({...f, id: f.id, properties: {...f.properties, id: f.id}})),
-  ),
-[features],
-);
+        features.features
+          .filter((f) => f.geometry.type === 'Polygon')
+          .map((f) => ({...f, id: f.id, properties: {...f.properties, id: f.id}})),
+      ),
+    [features],
+  );
 
   useEffect(() => {
     const map = mapRef.current;
@@ -105,16 +105,16 @@ features.features
 
     const onMouseMove = (e: {features?: {id?: string | number}[]}) => {
       const fid = e.features?.[0]?.id != null ? String(e.features[0].id) : null;
-            setHoveredId(fid);
+      setHoveredId(fid);
     };
     const onMouseLeave = () => {
-            setHoveredId(null);
+      setHoveredId(null);
     };
 
     const setup = () => {
       const data = getPolygonData();
-            if (map.getSource('areas-hover')) {
-                return;
+      if (map.getSource('areas-hover')) {
+        return;
       }
       map.addSource('areas-hover', {type: 'geojson', data, promoteId: 'id'} as Parameters<typeof map.addSource>[1]);
       map.addLayer({
@@ -123,12 +123,12 @@ features.features
         source: 'areas-hover',
         paint: {'fill-color': 'transparent', 'fill-opacity': 0},
       });
-            hoverSourceReady.current = true;
+      hoverSourceReady.current = true;
       map.on('mousemove', 'areas-hover-fill', onMouseMove);
       map.on('mouseleave', 'areas-hover-fill', onMouseLeave);
     };
 
-        if (map.isStyleLoaded()) {
+    if (map.isStyleLoaded()) {
       setup();
     } else {
       map.once('style.load', setup);
@@ -143,8 +143,8 @@ features.features
         if (map.getLayer('areas-hover-fill')) map.removeLayer('areas-hover-fill');
         if (map.getSource('areas-hover')) map.removeSource('areas-hover');
       } catch {
-/* map may be destroyed */
-}
+        /* map may be destroyed */
+      }
       hoverSourceReady.current = false;
     };
   }, [draw]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -160,20 +160,20 @@ features.features
   // Stamp user_hovered on Draw features so drawStyles can react to it.
   const prevHoveredIdRef = useRef<string | null>(null);
   useEffect(() => {
-        if (!draw) return;
+    if (!draw) return;
     const prev = prevHoveredIdRef.current;
     prevHoveredIdRef.current = hoveredId;
 
     if (prev && prev !== hoveredId) {
       const prevFeature = draw.get(prev);
-            if (prevFeature) {
+      if (prevFeature) {
         draw.setFeatureProperty(prev, 'hovered', false);
         draw.add(draw.get(prev)!);
       }
     }
     if (hoveredId) {
       const feature = draw.get(hoveredId);
-            if (feature) {
+      if (feature) {
         draw.setFeatureProperty(hoveredId, 'hovered', true);
         draw.add(draw.get(hoveredId)!);
       }
@@ -273,7 +273,7 @@ features.features
               width: '320px',
             }}
           >
-            <AreasList areas={areas} />
+            <AreasList areas={areas} onClose={() => setShowAreaList(false)} />
           </Box>
         )}
         {isMobile && (
@@ -286,14 +286,14 @@ features.features
                 sx: {
                   margin: 0,
                   width: 'calc(100% - 3rem)',
-                  height: 'calc(100% - 3rem)',
+                  height: 'calc(100% - 10rem)',
                   maxWidth: 'none',
                   maxHeight: 'none',
                 },
               },
             }}
           >
-            <AreasList areas={areas} />
+            <AreasList areas={areas} onClose={() => setShowAreaList(false)} />
           </Dialog>
         )}
         {mapData.docking_stations.map((station) => (
