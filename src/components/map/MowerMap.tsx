@@ -89,12 +89,15 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
   // events return a usable string id.
   const hoverSourceReady = useRef(false);
 
-  const getPolygonData = useCallback((): GeoJSON.FeatureCollection => ({
-    type: 'FeatureCollection',
-    features: features.features
+  const getPolygonData = useCallback(
+    () =>
+      featureCollection(
+features.features
       .filter((f) => f.geometry.type === 'Polygon')
       .map((f) => ({...f, id: f.id, properties: {...f.properties, id: f.id}})),
-  }), [features]);
+  ),
+[features],
+);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -102,24 +105,16 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
 
     const onMouseMove = (e: {features?: {id?: string | number}[]}) => {
       const fid = e.features?.[0]?.id != null ? String(e.features[0].id) : null;
-      // eslint-disable-next-line no-console
-      console.log('[hover] mousemove on areas-hover-fill, fid:', fid, 'features:', e.features);
-      setHoveredId(fid);
+            setHoveredId(fid);
     };
     const onMouseLeave = () => {
-      // eslint-disable-next-line no-console
-      console.log('[hover] mouseleave areas-hover-fill');
-      setHoveredId(null);
+            setHoveredId(null);
     };
 
     const setup = () => {
       const data = getPolygonData();
-      // eslint-disable-next-line no-console
-      console.log('[hover] setup — isStyleLoaded:', map.isStyleLoaded(), 'features:', data.features.length);
-      if (map.getSource('areas-hover')) {
-        // eslint-disable-next-line no-console
-        console.log('[hover] source already exists, skipping');
-        return;
+            if (map.getSource('areas-hover')) {
+                return;
       }
       map.addSource('areas-hover', {type: 'geojson', data, promoteId: 'id'} as Parameters<typeof map.addSource>[1]);
       map.addLayer({
@@ -128,16 +123,12 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
         source: 'areas-hover',
         paint: {'fill-color': 'transparent', 'fill-opacity': 0},
       });
-      // eslint-disable-next-line no-console
-      console.log('[hover] layer added. layers:', map.getStyle().layers?.map((l) => l.id));
-      hoverSourceReady.current = true;
+            hoverSourceReady.current = true;
       map.on('mousemove', 'areas-hover-fill', onMouseMove);
       map.on('mouseleave', 'areas-hover-fill', onMouseLeave);
     };
 
-    // eslint-disable-next-line no-console
-    console.log('[hover] effect run — isStyleLoaded:', map.isStyleLoaded(), 'draw:', !!draw);
-    if (map.isStyleLoaded()) {
+        if (map.isStyleLoaded()) {
       setup();
     } else {
       map.once('style.load', setup);
@@ -151,7 +142,9 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
       try {
         if (map.getLayer('areas-hover-fill')) map.removeLayer('areas-hover-fill');
         if (map.getSource('areas-hover')) map.removeSource('areas-hover');
-      } catch { /* map may be destroyed */ }
+      } catch {
+/* map may be destroyed */
+}
       hoverSourceReady.current = false;
     };
   }, [draw]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -167,26 +160,20 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
   // Stamp user_hovered on Draw features so drawStyles can react to it.
   const prevHoveredIdRef = useRef<string | null>(null);
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[hover] hoveredId changed:', hoveredId);
-    if (!draw) return;
+        if (!draw) return;
     const prev = prevHoveredIdRef.current;
     prevHoveredIdRef.current = hoveredId;
 
     if (prev && prev !== hoveredId) {
       const prevFeature = draw.get(prev);
-      // eslint-disable-next-line no-console
-      console.log('[hover] clearing prev:', prev, 'found:', !!prevFeature);
-      if (prevFeature) {
+            if (prevFeature) {
         draw.setFeatureProperty(prev, 'hovered', false);
         draw.add(draw.get(prev)!);
       }
     }
     if (hoveredId) {
       const feature = draw.get(hoveredId);
-      // eslint-disable-next-line no-console
-      console.log('[hover] setting new:', hoveredId, 'found:', !!feature);
-      if (feature) {
+            if (feature) {
         draw.setFeatureProperty(hoveredId, 'hovered', true);
         draw.add(draw.get(hoveredId)!);
       }
