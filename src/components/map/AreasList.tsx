@@ -126,7 +126,7 @@ export default function AreasList({areas}: {areas: Feature<Polygon, AreaProps>[]
                 <SortableAreaItem
                   key={area.id}
                   area={area}
-                  selected={selectedIds.includes(area.id as string)}
+                  selected={editMode && selectedIds.includes(area.id as string)}
                   hovered={hoveredId === (area.id as string)}
                   showDragHandle={editMode}
                   onSelect={handleSelect}
