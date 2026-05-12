@@ -6,6 +6,9 @@ At this time, "only" the map editor and some debug information are enabled.
 
 # Installation
 
+> [!WARNING]
+> In this early stage of the app, we only have an `edge` tag, which always points to the latest commit on the `main` branch. Later, when we switch to proper releases, there will also be a `latest` tag, pointing to the latest release. Also the port (currently `:3000`) might be changed later. You should still follow the steps below, just be prepared to adjust the config later.
+
 ## OpenMowerOS v2
 
 1. Go to `http://<mower-ip>:5001/compose/openmower` in your browser.
@@ -36,7 +39,7 @@ You can now access the app at `http://<mower-ip>:3000` in your browser.
 
 ## OpenMowerOS legacy
 
-For the legacy OpenMowerOS image you need to create a systemd service. Create a file at `/etc/systemd/system/openmower-app.service` with the following content:
+For the legacy OpenMowerOS image, you need to create a `systemd` service. Create a file at `/etc/systemd/system/openmower-app.service` with the following content:
 
 ```
 [Unit]
