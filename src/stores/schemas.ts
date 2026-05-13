@@ -55,7 +55,7 @@ const pointSchema = z.object({x: z.number(), y: z.number()});
 const polygonSchema = z.array(pointSchema);
 const areaSchema = z.object({
   id: z.string(),
-  properties: z.object({
+  properties: z.looseObject({
     name: z.string().optional(),
     type: z.enum(['mow', 'nav', 'obstacle', 'draft']).default('draft'),
     active: z.boolean().default(true),
