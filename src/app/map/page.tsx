@@ -5,7 +5,7 @@ import {HeaderStat, Page, PageContent, PageHeader} from '@/components/page';
 import {useMapboxDraw, useMapContext, withDisplaySortKeys} from '@/contexts/MapContext';
 import {outerCardStyles} from '@/lib/cardStyles';
 import {useSelectedMower} from '@/stores/mowersStore';
-import {AreaProps} from '@/stores/schemas';
+import {AreaProps, fallbackDatum} from '@/stores/schemas';
 import {featuresToMap, mapToFeatures} from '@/utils/area-converter';
 import {CheckCircle as CheckIcon, LocationOn as LocationIcon, PlayArrow as PlayIcon} from '@mui/icons-material';
 import {useTheme} from '@mui/material';
@@ -20,13 +20,17 @@ export function formatAreaSize(squareMeters: number): string {
 
 export default function MapPage() {
   const theme = useTheme();
-  const draw = useMapboxDraw();
-  const {features, setFeatures, editMode} = useMapContext();
-
-  // In display mode, send the features directly to the map.
-  // In edit mode, the draw controll will take care of updates.
   const mapData = useSelectedMower((s) => s?.map);
   const rpc = useSelectedMower((s) => s?.rpc);
+  const {features, setFeatures, setDatum, editMode} = useMapContext();
+  const draw = useMapboxDraw();
+
+  useEffect(() => {
+    setDatum(mapData?.datum ?? fallbackDatum);
+  }, [mapData?.datum, setDatum]);
+
+  // In display mode, send the features directly to the map.
+  // In edit mode, the draw control will take care of updates.
   useEffect(() => {
     if (draw && mapData && !editMode) {
       const features = mapToFeatures(mapData);
