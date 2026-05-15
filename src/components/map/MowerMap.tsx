@@ -8,7 +8,7 @@ import {generateId, splitPolygonWithLine} from '@/utils/area-utils';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import StaticMode from '@mapbox/mapbox-gl-draw-static-mode';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import {Box, Dialog, useMediaQuery, useTheme, type SxProps} from '@mui/material';
+import {Box, useMediaQuery, useTheme, type SxProps} from '@mui/material';
 import {featureCollection} from '@turf/helpers';
 import type {Feature, LineString, Polygon} from 'geojson';
 import {FocusIcon, GlobeIcon, LayoutListIcon, PencilIcon} from 'lucide-react';
@@ -26,6 +26,7 @@ import {AreaSettingsDialog} from './edit/AreaSettingsDialog';
 import {DownloadButton} from './edit/DownloadButton';
 import EditControls from './edit/EditControls';
 import {UploadButton} from './edit/UploadButton';
+import MapDialog from './MapDialog';
 import {mapStyles} from './mapStyles';
 import MowerMarker from './MowerMarker';
 import TeleopControls from './teleop/TeleopControls';
@@ -262,16 +263,15 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           </Box>
         )}
         {isMobile && (
-          <Dialog
+          <MapDialog
             open={showAreaList}
             onClose={() => setShowAreaList(false)}
-            disablePortal
             slotProps={{
               paper: {
                 sx: {
                   margin: 0,
-                  width: 'calc(100% - 3rem)',
-                  height: 'calc(100% - 10rem)',
+                  width: 'calc(100% - 2rem)',
+                  height: 'calc(100% - 2rem)',
                   maxWidth: 'none',
                   maxHeight: 'none',
                 },
@@ -279,7 +279,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
             }}
           >
             <AreasList areas={areas} onClose={() => setShowAreaList(false)} />
-          </Dialog>
+          </MapDialog>
         )}
         {mapData.docking_stations.map((station) => (
           <DockingStationMarker key={station.id} station={station} datum={datum} isDocked={isDocked} />
