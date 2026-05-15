@@ -12,6 +12,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -204,11 +205,10 @@ export function useMapboxDraw() {
 export function useFitToBounds() {
   const map = useMap();
   const {bounds} = useMapContext();
-  return useCallback(
+  return useEffectEvent(
     (immediate: boolean = false, padding = {top: 10, bottom: 10, left: 60, right: 60}) => {
       map?.fitBounds(bounds, {padding, duration: immediate ? 0 : 1000});
     },
-    [map, bounds],
   );
 }
 
