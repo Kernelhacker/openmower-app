@@ -1,0 +1,125 @@
+import {useSelectedMower} from '@/stores/mowersStore';
+import {type TrackAttributes} from '@/stores/schemas';
+import {
+  datumToRelative,
+  pointToAbsolute,
+  type AbsolutePoint,
+  type RelativePoint,
+  type UtmPoint,
+} from '@/utils/coordinates';
+import {type TrackSegment} from '@/utils/track-pipeline';
+import {lineString} from '@turf/helpers';
+import type {Feature, FeatureCollection, LineString} from 'geojson';
+import {useMemo, useRef} from 'react';
+
+export interface TrackFeatures {
+  live: Feature<LineString> | null;
+  history: FeatureCollection<LineString> | null;
+}
+
+class TrackCache {
+  private historyFeatures: Feature<LineString>[] = [];
+  private historyCollection: FeatureCollection<LineString> | null = null;
+  private liveCoords: AbsolutePoint[] = [];
+
+  constructor(private _datum: UtmPoint) {}
+
+  get datum(): UtmPoint {
+    return this._datum;
+  }
+
+  sync(buffer: RelativePoint[], historySegments: TrackSegment[], liveAttributes: TrackAttributes): TrackFeatures {
+    const convert = (p: RelativePoint): AbsolutePoint => pointToAbsolute(p, this._datum);
+    const history = this.syncHistory(historySegments, convert);
+    const live = this.syncLive(buffer, liveAttributes, convert);
+    return {live, history};
+  }
+
+  private syncHistory(
+    historySegments: TrackSegment[],
+    convert: (p: RelativePoint) => AbsolutePoint,
+  ): FeatureCollection<LineString> | null {
+    let changed = false;
+
+    if (historySegments.length !== this.historyFeatures.length) {
+      this.historyFeatures.length = historySegments.length;
+      changed = true;
+    }
+
+    for (let i = 0; i < historySegments.length; i++) {
+      const seg = historySegments[i];
+      const cachedCoords = this.historyFeatures[i]?.geometry.coordinates as AbsolutePoint[] | undefined;
+      const cachedLen = cachedCoords?.length ?? 0;
+      const newLen = seg.points.length;
+
+      if (newLen === cachedLen && this.historyFeatures[i]) {
+        continue; // Unchanged — keep existing reference
+      }
+
+      let coords: AbsolutePoint[];
+      if (newLen > cachedLen && cachedCoords) {
+        coords = [...cachedCoords, ...seg.points.slice(cachedLen).map(convert)]; // Grew — append only new tail
+      } else {
+        coords = seg.points.map(convert); // Shrunk, new, or no cached data — rebuild
+      }
+
+      this.historyFeatures[i] = lineString(coords, seg.attributes);
+      changed = true;
+    }
+
+    if (changed) {
+      const features = this.historyFeatures.filter(
+        (f): f is Feature<LineString> => f != null && f.geometry.coordinates.length >= 2,
+      );
+      this.historyCollection = features.length === 0 ? null : {type: 'FeatureCollection', features};
+    }
+
+    return this.historyCollection;
+  }
+
+  private syncLive(
+    buffer: RelativePoint[],
+    liveAttributes: TrackAttributes,
+    convert: (p: RelativePoint) => AbsolutePoint,
+  ): Feature<LineString> | null {
+    const cachedLen = this.liveCoords.length;
+    const newLen = buffer.length;
+
+    if (newLen > cachedLen) {
+      this.liveCoords = [...this.liveCoords, ...buffer.slice(cachedLen).map(convert)]; // Grew — append only new tail
+    } else if (newLen < cachedLen) {
+      this.liveCoords = buffer.map(convert); // Shrunk (compaction) — rebuild
+    }
+    // Equal length: liveCoords is still valid
+
+    // Live feature is always re-wrapped so the bridge prefix and properties
+    // are always up to date (O(1) — reuses cached coords array).
+    const lastHistoryPoint = (this.historyFeatures.at(-1)?.geometry.coordinates as AbsolutePoint[] | undefined)?.at(-1);
+    const liveWithBridge = lastHistoryPoint ? [lastHistoryPoint, ...this.liveCoords] : this.liveCoords;
+    return liveWithBridge.length >= 2 ? lineString(liveWithBridge, liveAttributes) : null;
+  }
+}
+
+export function useTrackFeatures(): TrackFeatures {
+  const buffer = useSelectedMower((s) => s?.track.buffer ?? ([] as RelativePoint[]));
+  const historySegments = useSelectedMower((s) => s?.track.historySegments ?? ([] as TrackSegment[]));
+  const liveAttributes = useSelectedMower((s) => s?.track.attributes ?? ({blades: false} as TrackAttributes));
+
+  const mapDatum = useSelectedMower((s) => s?.map.datum ?? null);
+  const utmDatum = useMemo(() => (mapDatum ? datumToRelative([mapDatum.long, mapDatum.lat]) : null), [mapDatum]);
+
+  const cache = useRef<TrackCache>(null);
+  if (!utmDatum) {
+    cache.current = null;
+    return {live: null, history: null};
+  }
+
+  // Reset the cache if the datum has changed.
+  if (!cache.current || cache.current.datum !== utmDatum) {
+    cache.current = new TrackCache(utmDatum);
+  }
+
+  // useMemo is intentionally omitted: sync() is cheap (incremental),
+  // and calling it on every render is simpler and avoids stale-closure risks.
+  return cache.current.sync(buffer, historySegments, liveAttributes);
+}

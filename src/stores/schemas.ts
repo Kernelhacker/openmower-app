@@ -135,7 +135,9 @@ export const positionSchema = z.object({
   }),
 });
 
-export type Position = Omit<z.infer<typeof positionSchema>, 'attributes'>;
+export type PositionWithAttributes = z.infer<typeof positionSchema>;
+export type Position = Omit<PositionWithAttributes, 'attributes'>;
+export type TrackAttributes = PositionWithAttributes['attributes'];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Defaults

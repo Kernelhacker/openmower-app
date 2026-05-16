@@ -1,7 +1,7 @@
 import type {MowerConfig} from '@/components/types';
-import type {TrackAttributes} from '@/hooks/useTrack';
 import {OpenMowerRpc} from '@/lib/rpc';
 import {generateId} from '@/utils/area-utils';
+import {TrackPipeline} from '@/utils/track-pipeline';
 import {BSON} from 'bson';
 import {immerable} from 'immer';
 import mqtt, {MqttClient} from 'mqtt';
@@ -24,7 +24,7 @@ import {
   type Capabilities,
   type Datum,
   type MapData,
-  type Position,
+  type PositionWithAttributes,
   type StateOptionalPose,
 } from './schemas';
 
@@ -44,8 +44,8 @@ class Mower {
   state: StateOptionalPose = stateDefaults;
   map: MapData = mapDefaults;
   params: Record<string, unknown> = {};
-  position: Position | null = null;
-  trackAttributes: TrackAttributes = {bladesOn: true};
+  position: PositionWithAttributes | null = null;
+  track: TrackPipeline = new TrackPipeline();
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
     this.id = config.id;
@@ -179,7 +179,10 @@ export const useMowersStore = create<MowersStore>()(
               });
             } else if (partialTopic === 'position/json') {
               set((state) => {
-                state.mowers[idx].position = positionSchema.parse(JSON.parse(payload.toString()));
+                const parsed = positionSchema.parse(JSON.parse(payload.toString()));
+                const mower = state.mowers[idx];
+                mower.position = parsed;
+                mower.track.addPoint(parsed);
               });
             }
           }

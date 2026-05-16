@@ -1,0 +1,127 @@
+import {type PositionWithAttributes, type TrackAttributes} from '@/stores/schemas';
+import {type RelativePoint} from '@/utils/coordinates';
+import {decimateFilter} from '@/utils/decimate';
+import {rdpSimplify} from '@/utils/rdp';
+
+/*
+ * Two-layer GPS track pipeline: "Live" (raw) + "History" (simplified).
+ *
+ * Positions are pre-processed by a median filter on the mower, so they're
+ * relatively smooth. They arrive every ~150 ms and are appended to a raw
+ * buffer that renders as the live layer.
+ *
+ * To avoid a gap between layers, the live line is prefixed with the last
+ * vertex of the history.
+ *
+ * The history is a list of segments, each carrying its own attributes
+ * (e.g. bladesOn). When attributes change, the current buffer is force-flushed
+ * under the old attributes and a new segment is started whose first point
+ * duplicates the previous segment's last point (bridge vertex) so segments
+ * connect without gaps or overdraw.
+ *
+ * When the live buffer exceeds COMPACTION_THRESHOLD, the oldest ~80% of
+ * points are moved into the history through two reduction passes:
+ *
+ *   1. Decimation — drops points that are close together and on the
+ *      same heading, keeping those where distance or heading change is
+ *      significant. A heartbeat guarantees at least every 10th point is kept.
+ *   2. Ramer-Douglas-Peucker — further reduces the decimated result by
+ *      removing points that don't deviate from the simplified line.
+ *
+ * Both passes run on the full buffer with the last point of the history
+ * prepended. This gives them extra context to steer the simplification
+ * toward better curves at the boundaries. Afterward, only points that
+ * originated from the oldest 80% are kept; the prefix and suffix points
+ * are discarded from the simplified result so they aren't added to the
+ * history prematurely.
+ *
+ * All points in the pipeline are stored as RelativePoint (x/y offsets from
+ * the UTM datum). Conversion to absolute/GeoJSON coordinates happens
+ * exclusively in useTrackLayers.ts.
+ */
+
+// --- Compaction ---
+const COMPACTION_THRESHOLD = 60; // Threshold to move raw points to history
+const CONTEXT = 10; // Padded window for RDP boundary stability
+
+// --- Decimation ---
+const DIST_THRESHOLD = 0.1; // 10 cm — minimum movement to keep a point
+const NOISE_DIST_THRESHOLD = 0.03; // 3 cm — minimum movement to trust heading vector
+const HEADING_THRESHOLD_RAD = 8 * (Math.PI / 180); // 8° heading change
+const HEARTBEAT_POSITIONS = 10;
+
+// --- RDP ---
+const RDP_EPSILON = 0.01; // 1 cm — stay fairly close to the original path
+
+export interface TrackSegment {
+  points: RelativePoint[];
+  attributes: TrackAttributes;
+}
+
+export class TrackPipeline {
+  buffer: RelativePoint[] = [];
+  historySegments: TrackSegment[] = [];
+  attributes: TrackAttributes = {blades: false};
+
+  addPoint(position: PositionWithAttributes): void {
+    if (!this._attributesMatch(this.attributes, position.attributes)) {
+      this.compact(true); // flush remaining buffer under OLD attributes
+    }
+    this.attributes = position.attributes;
+    this.buffer.push({x: position.x, y: position.y});
+    if (this.buffer.length > COMPACTION_THRESHOLD) {
+      this.compact();
+    }
+  }
+
+  /**
+   * Moves points from buffer into simplified historySegments.
+   */
+  private compact(flushAll = false): void {
+    const main = flushAll ? this.buffer : this.buffer.slice(0, -CONTEXT);
+    const suffix = flushAll ? [] : this.buffer.slice(-CONTEXT);
+
+    // Prefix: reach back to the last segment's tail to ensure RDP continuity
+    const lastSeg = this.historySegments[this.historySegments.length - 1];
+    let prefix: RelativePoint[] = [];
+    if (lastSeg && lastSeg.points.length > 0) {
+      prefix = [lastSeg.points[lastSeg.points.length - 1]];
+    }
+
+    const window = [...prefix, ...main, ...suffix];
+    if (window.length < 2) {
+      this.buffer = suffix;
+      return;
+    }
+
+    const decimated = decimateFilter(
+      window,
+      DIST_THRESHOLD,
+      NOISE_DIST_THRESHOLD,
+      HEADING_THRESHOLD_RAD,
+      HEARTBEAT_POSITIONS,
+    );
+    const simplified = rdpSimplify(decimated, RDP_EPSILON);
+    const mainSet = new Set(main);
+    const committed = simplified.filter((p) => mainSet.has(p));
+
+    if (committed.length > 0) {
+      if (lastSeg && this._attributesMatch(lastSeg.attributes, this.attributes)) {
+        lastSeg.points.push(...committed);
+      } else {
+        // Start new segment + bridge the gap to previous segment
+        const bridge = lastSeg ? [lastSeg.points[lastSeg.points.length - 1]] : [];
+        this.historySegments.push({
+          points: [...bridge, ...committed],
+          attributes: {...this.attributes},
+        });
+      }
+    }
+
+    this.buffer = suffix;
+  }
+
+  private _attributesMatch(a: TrackAttributes, b: TrackAttributes): boolean {
+    return a.blades === b.blades;
+  }
+}

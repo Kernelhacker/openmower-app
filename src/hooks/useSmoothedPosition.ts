@@ -1,10 +1,5 @@
+import {type Position} from '@/stores/schemas';
 import {useEffect, useRef, useState} from 'react';
-
-interface Position {
-  x: number;
-  y: number;
-  heading: number;
-}
 
 /**
  * Smoothly interpolates a position+heading value toward the latest target using

@@ -1,7 +1,6 @@
 'use client';
 
 import {useFitToBounds, useMapboxDraw, useMapContext, useMapHover} from '@/contexts/MapContext';
-import {useTrack} from '@/hooks/useTrack';
 import {useSelectedMower} from '@/stores/mowersStore';
 import {MapData, type AreaProps} from '@/stores/schemas';
 import type {AreaFeature} from '@/types/geojson';
@@ -59,8 +58,6 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
   const currentState = useSelectedMower((s) => s?.state.current_state);
   const isDocked = useSelectedMower((s) => s?.state.is_charging ?? false);
   const mowerPosition = useSelectedMower((s) => s?.position ?? s?.state.pose);
-  const trackAttributes = useSelectedMower((s) => s?.trackAttributes);
-  const {live, history} = useTrack(mowerPosition, datum, trackAttributes);
   const showTeleop = currentState === 'AREA_RECORDING' && !editMode;
   const areas = useMemo(
     () => features.features.filter((feature) => feature.geometry.type === 'Polygon') as Feature<Polygon, AreaProps>[],
@@ -302,7 +299,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           <DockingStationMarker key={station.id} station={station} datum={datumOrFallback} isDocked={isDocked} />
         ))}
         {mowerPosition && !isDocked && <MowerMarker position={mowerPosition} datum={datumOrFallback} />}
-        <TrackLayer live={live} history={history} />
+        <TrackLayer />
         {showTeleop && <TeleopControls />}
         <DialogOutlet />
       </RMap>
