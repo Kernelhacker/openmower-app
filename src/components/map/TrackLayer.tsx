@@ -1,7 +1,7 @@
 'use client';
 
 import {useTrackFeatures, type TrackFeatures} from '@/hooks/useTrackFeatures';
-import {featureCollection, lineString, point} from '@turf/helpers';
+import {featureCollection, point} from '@turf/helpers';
 import type {Feature, FeatureCollection, LineString, Point} from 'geojson';
 import {RLayer, RSource} from 'maplibre-react-components';
 import {useMemo} from 'react';
@@ -12,7 +12,7 @@ const layout = {'line-join': 'round', 'line-cap': 'round'} as const;
 const linePaint = {'line-color': '#1565C0', 'line-width': 2} as const;
 const pointPaint = {'circle-radius': 3, 'circle-color': '#1565C0', 'circle-opacity': 0.6} as const;
 
-const emptyLine: Feature<LineString> = lineString([]);
+const emptyLine: Feature<LineString> = {type: 'Feature', geometry: {type: 'LineString', coordinates: []}, properties: {}};
 const emptyLineCollection: FeatureCollection<LineString> = featureCollection([]);
 const emptyPoints: FeatureCollection<Point> = featureCollection([]);
 

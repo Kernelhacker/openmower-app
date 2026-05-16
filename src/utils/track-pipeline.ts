@@ -2,6 +2,7 @@ import {type PositionWithAttributes, type TrackAttributes} from '@/stores/schema
 import {type RelativePoint} from '@/utils/coordinates';
 import {decimateFilter} from '@/utils/decimate';
 import {rdpSimplify} from '@/utils/rdp';
+import {immerable} from 'immer';
 
 /*
  * Two-layer GPS track pipeline: "Live" (raw) + "History" (simplified).
@@ -59,6 +60,7 @@ export interface TrackSegment {
 }
 
 export class TrackPipeline {
+  [immerable] = true;
   buffer: RelativePoint[] = [];
   historySegments: TrackSegment[] = [];
   attributes: TrackAttributes = {blades: false};
@@ -80,7 +82,7 @@ export class TrackPipeline {
   private compact(flushAll = false): void {
     if (this.buffer.length <= CONTEXT_WINDOW && !flushAll) return;
     const main = flushAll ? this.buffer : this.buffer.slice(0, -CONTEXT_WINDOW);
-    const suffix = flushAll ? [] : this.buffer.slice(-CONTEXT_WINDOW);
+    let suffix = flushAll ? [] : this.buffer.slice(-CONTEXT_WINDOW);
 
     // Prefix: reach back to the last segment's tail to ensure RDP continuity
     const lastSeg = this.historySegments[this.historySegments.length - 1];
@@ -117,10 +119,14 @@ export class TrackPipeline {
       } else {
         // Start new segment + bridge the gap to previous segment
         const bridge = lastSeg ? [lastSeg.points[lastSeg.points.length - 1]] : [];
-        this.historySegments.push({
-          points: [...bridge, ...committed],
-          attributes: {...this.attributes},
-        });
+        const points = [...bridge, ...committed];
+        if (points.length >= 2) {
+          this.historySegments.push({points, attributes: {...this.attributes}});
+        } else {
+          // Not enough points to form a renderable segment yet; leave committed
+          // points in the suffix so they accumulate with the next batch.
+          suffix = [...committed, ...suffix];
+        }
       }
     }
 

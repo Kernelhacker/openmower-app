@@ -1,3 +1,4 @@
+import {useMapContext} from '@/contexts/MapContext';
 import {useSelectedMower} from '@/stores/mowersStore';
 import {type TrackAttributes} from '@/stores/schemas';
 import {
@@ -21,6 +22,7 @@ class TrackCache {
   private historyFeatures: Feature<LineString>[] = [];
   private historyCollection: FeatureCollection<LineString> | null = null;
   private liveCoords: AbsolutePoint[] = [];
+  private lastLiveFeature: Feature<LineString> | null = null;
 
   constructor(private _datum: UtmPoint) {}
 
@@ -63,7 +65,11 @@ class TrackCache {
         coords = seg.points.map(convert); // Shrunk, new, or no cached data — rebuild
       }
 
-      this.historyFeatures[i] = lineString(coords, seg.attributes);
+      if (coords.length >= 2) {
+        this.historyFeatures[i] = lineString(coords, seg.attributes);
+      } else {
+        delete this.historyFeatures[i];
+      }
       changed = true;
     }
 
@@ -94,9 +100,13 @@ class TrackCache {
 
     // Live feature is always re-wrapped so the bridge prefix and properties
     // are always up to date (O(1) — reuses cached coords array).
-    const lastHistoryPoint = (this.historyFeatures.at(-1)?.geometry.coordinates as AbsolutePoint[] | undefined)?.at(-1);
+    const lastHistoryPoint = (this.historyFeatures.findLast((f) => f != null)?.geometry.coordinates as AbsolutePoint[] | undefined)?.at(-1);
     const liveWithBridge = lastHistoryPoint ? [lastHistoryPoint, ...this.liveCoords] : this.liveCoords;
-    return liveWithBridge.length >= 2 ? lineString(liveWithBridge, liveAttributes) : null;
+    const live = liveWithBridge.length >= 2 ? lineString(liveWithBridge, liveAttributes) : null;
+    if (live !== null) this.lastLiveFeature = live;
+    // Fall back to the last valid live feature to avoid a flash of missing track
+    // during the brief gap after a buffer flush (0–1 points).
+    return live ?? this.lastLiveFeature;
   }
 }
 
@@ -105,8 +115,8 @@ export function useTrackFeatures(): TrackFeatures {
   const historySegments = useSelectedMower((s) => s?.track.historySegments ?? ([] as TrackSegment[]));
   const liveAttributes = useSelectedMower((s) => s?.track.attributes ?? ({blades: false} as TrackAttributes));
 
-  const mapDatum = useSelectedMower((s) => s?.map.datum ?? null);
-  const utmDatum = useMemo(() => (mapDatum ? datumToRelative([mapDatum.long, mapDatum.lat]) : null), [mapDatum]);
+  const {datum: mapDatum} = useMapContext();
+  const utmDatum = useMemo(() => datumToRelative([mapDatum.long, mapDatum.lat]), [mapDatum]);
 
   const cache = useRef<TrackCache>(null);
   if (!utmDatum) {
