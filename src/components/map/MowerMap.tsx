@@ -25,6 +25,7 @@ import {drawStyles} from './drawStyles';
 import {AreaSettingsDialog} from './edit/AreaSettingsDialog';
 import {DownloadButton} from './edit/DownloadButton';
 import EditControls from './edit/EditControls';
+import {IssuesButton} from './edit/IssuesButton';
 import {UploadButton} from './edit/UploadButton';
 import MapDialog from './MapDialog';
 import {mapStyles} from './mapStyles';
@@ -247,6 +248,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
         />
         <DownloadButton />
         <UploadButton />
+        <IssuesButton />
 
         {/* Overlays */}
         {!isMobile && showAreaList && (

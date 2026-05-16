@@ -1,4 +1,5 @@
 import {fallbackDatum, type Datum} from '@/stores/schemas';
+import {detectFeatureIssues, type MapIssue} from '@/utils/map-issues';
 import MapboxDraw, {type DrawMode} from '@mapbox/mapbox-gl-draw';
 import bbox from '@turf/bbox';
 import {featureCollection} from '@turf/helpers';
@@ -53,6 +54,7 @@ interface MapContextType {
   features: FeatureCollection;
   setFeatures: SetFeatures;
   bounds: Bounds;
+  issues: MapIssue[];
   editMode: boolean;
   setEditMode: Dispatch<SetStateAction<boolean>>;
   drawMode: DrawMode;
@@ -106,7 +108,9 @@ export const MapContextProvider = ({id, children}: {id: string; children: React.
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [past, setPast] = useState<FeatureCollection[]>([]);
   const [future, setFuture] = useState<FeatureCollection[]>([]);
+
   const bounds = useBounds(features, datum);
+  const issues = useMemo(() => features.features.flatMap(detectFeatureIssues), [features]);
 
   // Keep a ref to the current features so undo/redo callbacks don't go stale.
   const featuresRef = useRef(features);
@@ -161,6 +165,8 @@ export const MapContextProvider = ({id, children}: {id: string; children: React.
         setDatum,
         features,
         setFeatures,
+        bounds,
+        issues,
         editMode,
         setEditMode,
         drawMode,
@@ -176,7 +182,6 @@ export const MapContextProvider = ({id, children}: {id: string; children: React.
         redo,
         hoveredId,
         setHoveredId,
-        bounds,
       }}
     >
       {children}
@@ -205,11 +210,9 @@ export function useMapboxDraw() {
 export function useFitToBounds() {
   const map = useMap();
   const {bounds} = useMapContext();
-  return useEffectEvent(
-    (immediate: boolean = false, padding = {top: 10, bottom: 10, left: 60, right: 60}) => {
-      map?.fitBounds(bounds, {padding, duration: immediate ? 0 : 1000});
-    },
-  );
+  return useEffectEvent((immediate: boolean = false, padding = {top: 10, bottom: 10, left: 60, right: 60}) => {
+    map?.fitBounds(bounds, {padding, duration: immediate ? 0 : 1000});
+  });
 }
 
 export function useMapHover(): [string | null, Dispatch<SetStateAction<string | null>>] {
