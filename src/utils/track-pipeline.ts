@@ -42,7 +42,7 @@ import {rdpSimplify} from '@/utils/rdp';
 
 // --- Compaction ---
 const COMPACTION_THRESHOLD = 60; // Threshold to move raw points to history
-const CONTEXT = 10; // Padded window for RDP boundary stability
+const CONTEXT_WINDOW = 10; // Padded window for RDP boundary stability
 
 // --- Decimation ---
 const DIST_THRESHOLD = 0.1; // 10 cm — minimum movement to keep a point
@@ -78,8 +78,9 @@ export class TrackPipeline {
    * Moves points from buffer into simplified historySegments.
    */
   private compact(flushAll = false): void {
-    const main = flushAll ? this.buffer : this.buffer.slice(0, -CONTEXT);
-    const suffix = flushAll ? [] : this.buffer.slice(-CONTEXT);
+    if (this.buffer.length <= CONTEXT_WINDOW && !flushAll) return;
+    const main = flushAll ? this.buffer : this.buffer.slice(0, -CONTEXT_WINDOW);
+    const suffix = flushAll ? [] : this.buffer.slice(-CONTEXT_WINDOW);
 
     // Prefix: reach back to the last segment's tail to ensure RDP continuity
     const lastSeg = this.historySegments[this.historySegments.length - 1];
@@ -88,6 +89,7 @@ export class TrackPipeline {
       prefix = [lastSeg.points[lastSeg.points.length - 1]];
     }
 
+    // Points must be spread by reference (see object-identity comment below).
     const window = [...prefix, ...main, ...suffix];
     if (window.length < 2) {
       this.buffer = suffix;
@@ -102,6 +104,10 @@ export class TrackPipeline {
       HEARTBEAT_POSITIONS,
     );
     const simplified = rdpSimplify(decimated, RDP_EPSILON);
+    // Object-identity filter: mainSet and the simplified array must share the
+    // same RelativePoint references — do NOT reconstruct points (e.g. via map
+    // or spread) between building `main` and building `window`, or the Set
+    // lookup will never match and committed will always be empty.
     const mainSet = new Set(main);
     const committed = simplified.filter((p) => mainSet.has(p));
 
