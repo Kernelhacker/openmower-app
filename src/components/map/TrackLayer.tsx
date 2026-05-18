@@ -3,16 +3,26 @@
 import {useTrackFeatures, type TrackFeatures} from '@/hooks/useTrackFeatures';
 import {featureCollection, point} from '@turf/helpers';
 import type {Feature, FeatureCollection, LineString, Point} from 'geojson';
+import type {ExpressionSpecification, LineLayerSpecification} from 'maplibre-gl';
 import {RLayer, RSource} from 'maplibre-react-components';
 import {useMemo} from 'react';
 
 const SHOW_TRACK_POINTS = false;
 
-const layout = {'line-join': 'round', 'line-cap': 'round'} as const;
-const linePaint = {'line-color': '#1565C0', 'line-width': 2} as const;
+const layout: LineLayerSpecification['layout'] = {'line-join': 'round', 'line-cap': 'butt'};
+const linePaint: LineLayerSpecification['paint'] = {
+  'line-color': '#fbb03b',
+  'line-width': ['interpolate', ['exponential', 1.5], ['zoom'], 12, 1, 25, 2],
+  'line-opacity': ['case', ['==', ['get', 'blades'], true], 1, 0.5] as ExpressionSpecification,
+  'line-dasharray': ['case', ['==', ['get', 'blades'], true], ['literal', [1, 0]], ['literal', [3, 3]]],
+};
 const pointPaint = {'circle-radius': 3, 'circle-color': '#1565C0', 'circle-opacity': 0.6} as const;
 
-const emptyLine: Feature<LineString> = {type: 'Feature', geometry: {type: 'LineString', coordinates: []}, properties: {}};
+const emptyLine: Feature<LineString> = {
+  type: 'Feature',
+  geometry: {type: 'LineString', coordinates: []},
+  properties: {},
+};
 const emptyLineCollection: FeatureCollection<LineString> = featureCollection([]);
 const emptyPoints: FeatureCollection<Point> = featureCollection([]);
 
