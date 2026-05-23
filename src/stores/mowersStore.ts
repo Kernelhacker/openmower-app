@@ -182,7 +182,9 @@ export const useMowersStore = create<MowersStore>()(
                 const parsed = positionSchema.parse(JSON.parse(payload.toString()));
                 const mower = state.mowers[idx];
                 mower.position = parsed;
-                mower.track.addPoint(parsed);
+                if (!parsed.attributes.idle) {
+                  mower.track.addPoint(parsed);
+                }
               });
             }
           }

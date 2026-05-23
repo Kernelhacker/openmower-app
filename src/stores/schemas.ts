@@ -131,6 +131,7 @@ export const positionSchema = z.object({
   y: z.number(),
   heading: z.number(),
   attributes: z.object({
+    idle: z.boolean(),
     blades: z.boolean(),
   }),
 });
