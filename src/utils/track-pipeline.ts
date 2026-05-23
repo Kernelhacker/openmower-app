@@ -63,7 +63,15 @@ export class TrackPipeline {
   [immerable] = true;
   buffer: RelativePoint[] = [];
   historySegments: TrackSegment[] = [];
-  attributes: TrackAttributes = {blades: false};
+  attributes: TrackAttributes = {idle: false, blades: false};
+
+  seedFromHistory(segments: {attributes: {blades: boolean}; points: [number, number][]}[], buffer: [number, number][]): void {
+    this.historySegments = segments.map((seg) => ({
+      attributes: {idle: false, blades: seg.attributes.blades},
+      points: seg.points.map(([x, y]) => ({x, y})),
+    }));
+    this.buffer = buffer.map(([x, y]) => ({x, y}));
+  }
 
   addPoint(position: PositionWithAttributes): void {
     if (!this._attributesMatch(this.attributes, position.attributes)) {

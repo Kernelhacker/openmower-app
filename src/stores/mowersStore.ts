@@ -146,6 +146,19 @@ export const useMowersStore = create<MowersStore>()(
             client.subscribe(clientMower.prefix + 'rpc/response');
             client.subscribe(clientMower.prefix + 'params/json');
             client.subscribe(clientMower.prefix + 'position/json');
+            mowers[clientMower.idx].rpc.position
+              .history()
+              .then((result) => {
+                set((state) => {
+                  state.mowers[clientMower.idx].track.seedFromHistory(
+                    (result.segments ?? []) as {attributes: {blades: boolean}; points: [number, number][]}[],
+                    (result.buffer ?? []) as [number, number][],
+                  );
+                });
+              })
+              .catch(() => {
+                // server may not support position.history yet
+              });
           }
         });
 

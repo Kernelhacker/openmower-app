@@ -85,6 +85,41 @@
       }
     },
     {
+      "name": "position.history",
+      "summary": "Returns compacted segments and the raw pending buffer for client seeding.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "segments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "attributes": {
+                    "type": "object",
+                    "properties": {
+                      "blades": { "type": "boolean" }
+                    }
+                  },
+                  "points": {
+                    "type": "array",
+                    "items": { "type": "array", "items": { "type": "number" } }
+                  }
+                }
+              }
+            },
+            "buffer": {
+              "type": "array",
+              "items": { "type": "array", "items": { "type": "number" } }
+            }
+          }
+        }
+      }
+    },
+    {
       "name": "meta.config.defaults",
       "summary": "Get the default configuration values.",
       "params": [],
