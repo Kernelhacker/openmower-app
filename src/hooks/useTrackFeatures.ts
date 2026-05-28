@@ -33,7 +33,7 @@ class TrackCache {
   sync(buffer: RelativePoint[], historySegments: TrackSegment[], liveAttributes: TrackAttributes): TrackFeatures {
     const convert = (p: RelativePoint): AbsolutePoint => pointToAbsolute(p, this._datum);
     const history = this.syncHistory(historySegments, convert);
-    const live = this.syncLive(buffer, liveAttributes, convert);
+    const live = this.syncLive(buffer, liveAttributes, historySegments, convert);
     return {live, history};
   }
 
@@ -86,6 +86,7 @@ class TrackCache {
   private syncLive(
     buffer: RelativePoint[],
     liveAttributes: TrackAttributes,
+    historySegments: TrackSegment[],
     convert: (p: RelativePoint) => AbsolutePoint,
   ): Feature<LineString> | null {
     const cachedLen = this.liveCoords.length;
@@ -100,7 +101,8 @@ class TrackCache {
 
     // Live feature is always re-wrapped so the bridge prefix and properties
     // are always up to date (O(1) — reuses cached coords array).
-    const lastHistoryPoint = (this.historyFeatures.findLast((f) => f != null)?.geometry.coordinates as AbsolutePoint[] | undefined)?.at(-1);
+    const lastSegLastPoint = historySegments.at(-1)?.points.at(-1);
+    const lastHistoryPoint = lastSegLastPoint ? convert(lastSegLastPoint) : undefined;
     const liveWithBridge = lastHistoryPoint ? [lastHistoryPoint, ...this.liveCoords] : this.liveCoords;
     const live = liveWithBridge.length >= 2 ? lineString(liveWithBridge, liveAttributes) : null;
     if (live !== null) this.lastLiveFeature = live;

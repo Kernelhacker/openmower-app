@@ -26,6 +26,7 @@ import {
   type MapData,
   type PositionWithAttributes,
   type StateOptionalPose,
+  type TrackAttributes,
 } from './schemas';
 
 export type MqttStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'offline';
@@ -151,7 +152,7 @@ export const useMowersStore = create<MowersStore>()(
               .then((result) => {
                 set((state) => {
                   state.mowers[clientMower.idx].track.seedFromHistory(
-                    (result.segments ?? []) as {attributes: {blades: boolean}; points: [number, number][]}[],
+                    (result.segments ?? []) as {attributes: TrackAttributes; points: [number, number][]}[],
                     (result.buffer ?? []) as [number, number][],
                   );
                 });
@@ -195,7 +196,7 @@ export const useMowersStore = create<MowersStore>()(
                 const parsed = positionSchema.parse(JSON.parse(payload.toString()));
                 const mower = state.mowers[idx];
                 mower.position = parsed;
-                if (!parsed.attributes.idle) {
+                if (parsed.attributes.session_id) {
                   mower.track.addPoint(parsed);
                 }
               });

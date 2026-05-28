@@ -63,18 +63,25 @@ export class TrackPipeline {
   [immerable] = true;
   buffer: RelativePoint[] = [];
   historySegments: TrackSegment[] = [];
-  attributes: TrackAttributes = {idle: false, blades: false};
+  attributes: TrackAttributes = {job_id: '', session_id: '', blades: false};
 
-  seedFromHistory(segments: {attributes: {blades: boolean}; points: [number, number][]}[], buffer: [number, number][]): void {
+  seedFromHistory(
+    segments: {attributes: TrackAttributes; points: [number, number][]}[],
+    buffer: [number, number][],
+  ): void {
     this.historySegments = segments.map((seg) => ({
-      attributes: {idle: false, blades: seg.attributes.blades},
+      attributes: {...seg.attributes},
       points: seg.points.map(([x, y]) => ({x, y})),
     }));
     this.buffer = buffer.map(([x, y]) => ({x, y}));
+    this.attributes = segments.at(-1)?.attributes ?? {job_id: '', session_id: '', blades: false};
   }
 
   addPoint(position: PositionWithAttributes): void {
-    if (!this._attributesMatch(this.attributes, position.attributes)) {
+    if (position.attributes.job_id !== this.attributes.job_id && this.attributes.job_id !== '') {
+      this.buffer = [];
+      this.historySegments = [];
+    } else if (!this._attributesMatch(this.attributes, position.attributes)) {
       this.compact(true); // flush remaining buffer under OLD attributes
     }
     this.attributes = position.attributes;
@@ -126,7 +133,8 @@ export class TrackPipeline {
         lastSeg.points.push(...committed);
       } else {
         // Start new segment + bridge the gap to previous segment
-        const bridge = lastSeg ? [lastSeg.points[lastSeg.points.length - 1]] : [];
+        const lastPoint = lastSeg?.points.at(-1);
+        const bridge = lastPoint ? [lastPoint] : [];
         const points = [...bridge, ...committed];
         if (points.length >= 2) {
           this.historySegments.push({points, attributes: {...this.attributes}});

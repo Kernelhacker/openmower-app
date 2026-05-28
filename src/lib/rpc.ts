@@ -5,19 +5,21 @@ import OpenMowerBaseRpc from './rpc-base';
 
 export type StringDoaGddGA = string;
 export type BooleanVyG3AETh = boolean;
-export interface ObjectOfBooleanVyG3AEThQUdUNSIA {
+export interface ObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKM {
+  job_id?: StringDoaGddGA;
+  session_id?: StringDoaGddGA;
   blades?: BooleanVyG3AETh;
   [k: string]: any;
 }
 export type NumberHo1ClIqD = number;
 export type UnorderedSetOfNumberHo1ClIqDAokMKuEf = NumberHo1ClIqD[];
 export type UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5G = UnorderedSetOfNumberHo1ClIqDAokMKuEf[];
-export interface ObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3Lx {
-  attributes?: ObjectOfBooleanVyG3AEThQUdUNSIA;
+export interface ObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4 {
+  attributes?: ObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKM;
   points?: UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5G;
   [k: string]: any;
 }
-export type UnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3LxD0QdRchK = ObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3Lx[];
+export type UnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4 = ObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4[];
 /**
  *
  * Content of a YAML file as a string
@@ -28,8 +30,8 @@ export interface ObjectHAgrRKSz { [key: string]: any; }
 export type StringZDJW5SIj = "pong";
 export type UnorderedSetOfStringDoaGddGADvj0XlFa = StringDoaGddGA[];
 export type NullQu0Arl1F = null;
-export interface ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3LxD0QdRchKUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5G58KCbAdo {
-  segments?: UnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3LxD0QdRchK;
+export interface ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1Ws {
+  segments?: UnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4;
   buffer?: UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5G;
   [k: string]: any;
 }
@@ -44,7 +46,7 @@ export interface ObjectHicl3T4F { [key: string]: any; }
  * Generated! Represents an alias to any of the provided schemas
  *
  */
-export type AnyOfObjectHAgrRKSzStringZDJW5SIjUnorderedSetOfStringDoaGddGADvj0XlFaNullQu0Arl1FStringZDJW5SIjStringDoaGddGAObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3LxD0QdRchKUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5G58KCbAdoObjectHicl3T4F = ObjectHAgrRKSz | StringZDJW5SIj | UnorderedSetOfStringDoaGddGADvj0XlFa | NullQu0Arl1F | StringDoaGddGA | ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3LxD0QdRchKUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5G58KCbAdo | ObjectHicl3T4F;
+export type AnyOfObjectHAgrRKSzStringZDJW5SIjUnorderedSetOfStringDoaGddGADvj0XlFaNullQu0Arl1FStringZDJW5SIjStringDoaGddGAObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1WsObjectHicl3T4F = ObjectHAgrRKSz | StringZDJW5SIj | UnorderedSetOfStringDoaGddGADvj0XlFa | NullQu0Arl1F | StringDoaGddGA | ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1Ws | ObjectHicl3T4F;
 
 export class OpenMowerRpc extends OpenMowerBaseRpc {
   rpc = {
@@ -85,6 +87,6 @@ export class OpenMowerRpc extends OpenMowerBaseRpc {
     /**
     * Returns compacted segments and the raw pending buffer for client seeding.
     */
-    history: async (): Promise<ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfBooleanVyG3AEThQUdUNSIAZ7M3V3LxD0QdRchKUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5G58KCbAdo> => this.call('position.history'),
+    history: async (): Promise<ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1Ws> => this.call('position.history'),
   };
 }

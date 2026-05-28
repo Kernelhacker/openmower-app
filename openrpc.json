@@ -101,19 +101,37 @@
                   "attributes": {
                     "type": "object",
                     "properties": {
-                      "blades": { "type": "boolean" }
+                      "job_id": {
+                        "type": "string"
+                      },
+                      "session_id": {
+                        "type": "string"
+                      },
+                      "blades": {
+                        "type": "boolean"
+                      }
                     }
                   },
                   "points": {
                     "type": "array",
-                    "items": { "type": "array", "items": { "type": "number" } }
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
                   }
                 }
               }
             },
             "buffer": {
               "type": "array",
-              "items": { "type": "array", "items": { "type": "number" } }
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
             }
           }
         }
