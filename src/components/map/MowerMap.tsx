@@ -39,8 +39,18 @@ interface MowerMapProps {
 }
 
 export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
-  const {id, datum, editMode, setEditMode, features, setFeatures, drawWorkflow, setDrawWorkflow, bounds} =
-    useMapContext();
+  const {
+    id,
+    datum,
+    datumOrFallback,
+    editMode,
+    setEditMode,
+    features,
+    setFeatures,
+    drawWorkflow,
+    setDrawWorkflow,
+    bounds,
+  } = useMapContext();
   const mapRef = useRef<Map>(null);
   const draw = useMapboxDraw();
   const [hoveredId, setHoveredId] = useMapHover();
@@ -284,9 +294,9 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           </MapDialog>
         )}
         {mapData.docking_stations.map((station) => (
-          <DockingStationMarker key={station.id} station={station} datum={datum} isDocked={isDocked} />
+          <DockingStationMarker key={station.id} station={station} datum={datumOrFallback} isDocked={isDocked} />
         ))}
-        <MowerMarker datum={datum} isDocked={isDocked} />
+        <MowerMarker datum={datumOrFallback} isDocked={isDocked} />
         {showTeleop && <TeleopControls />}
         <DialogOutlet />
       </RMap>

@@ -62,7 +62,7 @@ export function UploadButton() {
         icon={UploadIcon}
         title="Upload map"
         onClick={handleUploadClick}
-        disabled={!draw}
+        hidden={!draw}
       />
     </>
   );

@@ -9,6 +9,7 @@ interface ControlButtonProps extends ButtonProps {
   icon: React.ElementType;
   active?: boolean;
   spaced?: boolean;
+  hidden?: boolean;
 }
 
 export default function ControlButton({
@@ -16,6 +17,7 @@ export default function ControlButton({
   icon: Icon,
   active = false,
   spaced = false,
+  hidden = false,
   style,
   ...props
 }: ControlButtonProps) {
@@ -29,13 +31,14 @@ export default function ControlButton({
     className: className,
   });
 
+  const hiddenStyle = hidden ? {display: 'none'} : undefined;
   const disabledStyle =
     props.disabled && theme.palette.mode === 'dark'
       ? {color: 'rgba(255,255,255,0.3)'}
       : undefined;
 
   return createPortal(
-    <button {...props} type="button" style={{...disabledStyle, ...style}}>
+    <button {...props} type="button" style={{...hiddenStyle, ...disabledStyle, ...style}}>
       <Icon />
     </button>,
     container,

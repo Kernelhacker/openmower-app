@@ -5,7 +5,7 @@ import {HeaderStat, Page, PageContent, PageHeader} from '@/components/page';
 import {useMapboxDraw, useMapContext, withDisplaySortKeys} from '@/contexts/MapContext';
 import {outerCardStyles} from '@/lib/cardStyles';
 import {useSelectedMower} from '@/stores/mowersStore';
-import {AreaProps, fallbackDatum} from '@/stores/schemas';
+import {AreaProps} from '@/stores/schemas';
 import {featuresToMap, mapToFeatures} from '@/utils/area-converter';
 import {CheckCircle as CheckIcon, LocationOn as LocationIcon, PlayArrow as PlayIcon} from '@mui/icons-material';
 import {useTheme} from '@mui/material';
@@ -26,7 +26,7 @@ export default function MapPage() {
   const draw = useMapboxDraw();
 
   useEffect(() => {
-    setDatum(mapData?.datum ?? fallbackDatum);
+    setDatum(mapData?.datum ?? null);
   }, [mapData?.datum, setDatum]);
 
   // In display mode, send the features directly to the map.

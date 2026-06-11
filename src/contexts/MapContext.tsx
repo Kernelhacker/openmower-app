@@ -49,8 +49,9 @@ type SetFeatures = (
 
 interface MapContextType {
   id: string;
-  datum: Datum;
-  setDatum: Dispatch<SetStateAction<Datum>>;
+  datum: Datum | null;
+  datumOrFallback: Datum;
+  setDatum: Dispatch<SetStateAction<Datum | null>>;
   features: FeatureCollection;
   setFeatures: SetFeatures;
   bounds: Bounds;
@@ -97,7 +98,8 @@ export function withDisplaySortKeys(fc: FeatureCollection): FeatureCollection {
 export const MapContext = createContext<MapContextType | undefined>(undefined);
 
 export const MapContextProvider = ({id, children}: {id: string; children: React.ReactNode}) => {
-  const [datum, setDatum] = useState<Datum>(fallbackDatum);
+  const [datum, setDatum] = useState<Datum | null>(null);
+  const datumOrFallback = datum ?? fallbackDatum;
   // Note that here is where we keep the correct order of features (mapbox-gl-draw doesn't maintain it).
   const [features, setFeaturesImmer] = useImmer<FeatureCollection>(featureCollection([]));
   const [editMode, setEditMode] = useState(false);
@@ -109,7 +111,7 @@ export const MapContextProvider = ({id, children}: {id: string; children: React.
   const [past, setPast] = useState<FeatureCollection[]>([]);
   const [future, setFuture] = useState<FeatureCollection[]>([]);
 
-  const bounds = useBounds(features, datum);
+  const bounds = useBounds(features, datumOrFallback);
   const issues = useMemo(() => features.features.flatMap(detectFeatureIssues), [features]);
 
   // Keep a ref to the current features so undo/redo callbacks don't go stale.
@@ -162,6 +164,7 @@ export const MapContextProvider = ({id, children}: {id: string; children: React.
       value={{
         id,
         datum,
+        datumOrFallback,
         setDatum,
         features,
         setFeatures,
