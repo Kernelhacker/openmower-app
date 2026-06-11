@@ -11,6 +11,7 @@ import {
   Area,
   AreaType,
   capabilitiesSchema,
+  datumSchema,
   LegacyArea,
   LegacyMapData,
   legacyMapSchema,
@@ -19,6 +20,7 @@ import {
   stateDefaults,
   stateSchema,
   type Capabilities,
+  type Datum,
   type MapData,
   type State,
 } from './schemas';
@@ -38,6 +40,7 @@ class Mower {
   capabilities: Capabilities = {};
   state: State = stateDefaults;
   map: MapData = mapDefaults;
+  params: Record<string, unknown> = {};
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
     this.id = config.id;
@@ -52,6 +55,15 @@ class Mower {
   hasCapability(capability: string, minLevel: number = 1): boolean {
     const level = this.capabilities[capability];
     return level !== undefined && level >= minLevel;
+  }
+
+  getDatumFromParams(): Datum | undefined {
+    const result = datumSchema.safeParse({
+      lat: this.params['/ll/services/gps/datum_lat'],
+      long: this.params['/ll/services/gps/datum_long'],
+      height: this.params['/ll/services/gps/datum_height'],
+    });
+    return result.success ? result.data : undefined;
   }
 
   publishTeleop(vx: number, vz: number) {
@@ -127,6 +139,7 @@ export const useMowersStore = create<MowersStore>()(
             client.subscribe(clientMower.prefix + 'robot_state/json');
             client.subscribe(clientMower.prefix + 'map/json');
             client.subscribe(clientMower.prefix + 'rpc/response');
+            client.subscribe(clientMower.prefix + 'params/json');
           }
         });
 
@@ -142,14 +155,21 @@ export const useMowersStore = create<MowersStore>()(
             } else if (partialTopic === 'map/json') {
               set((state) => {
                 const json = JSON.parse(payload.toString());
-                state.mowers[idx].map =
-                  'areas' in json ? mapSchema.parse(json) : convertLegacyMap(legacyMapSchema.parse(json));
+                const map = 'areas' in json ? mapSchema.parse(json) : convertLegacyMap(legacyMapSchema.parse(json));
+                map.datum ??= state.mowers[idx].getDatumFromParams();
+                state.mowers[idx].map = map;
               });
             } else if (partialTopic === 'rpc/response') {
               mowers[idx].rpc._handleResponse(payload.toString());
             } else if (partialTopic === 'capabilities/json') {
               set((state) => {
                 state.mowers[idx].capabilities = capabilitiesSchema.parse(JSON.parse(payload.toString()));
+              });
+            } else if (partialTopic === 'params/json') {
+              set((state) => {
+                const mower = state.mowers[idx];
+                mower.params = JSON.parse(payload.toString()) as Record<string, unknown>;
+                mower.map.datum ??= mower.getDatumFromParams();
               });
             }
           }
