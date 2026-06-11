@@ -47,6 +47,7 @@ class Mower {
   params: Record<string, unknown> = {};
   position: PositionWithAttributes | null = null;
   track: TrackPipeline = new TrackPipeline();
+  params: Record<string, unknown> = {};
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
     this.id = config.id;
@@ -147,6 +148,7 @@ export const useMowersStore = create<MowersStore>()(
             client.subscribe(clientMower.prefix + 'rpc/response');
             client.subscribe(clientMower.prefix + 'params/json');
             client.subscribe(clientMower.prefix + 'position/json');
+            client.subscribe(clientMower.prefix + 'params/json');
             mowers[clientMower.idx].rpc.position
               .history()
               .then((result) => {
@@ -199,6 +201,12 @@ export const useMowersStore = create<MowersStore>()(
                 if (parsed.attributes.session_id) {
                   mower.track.addPoint(parsed);
                 }
+              });
+            } else if (partialTopic === 'params/json') {
+              set((state) => {
+                const mower = state.mowers[idx];
+                mower.params = JSON.parse(payload.toString()) as Record<string, unknown>;
+                mower.map.datum ??= mower.getDatumFromParams();
               });
             }
           }
