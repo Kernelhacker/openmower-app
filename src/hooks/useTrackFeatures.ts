@@ -117,16 +117,11 @@ export function useTrackFeatures(): TrackFeatures {
   const historySegments = useSelectedMower((s) => s?.track.historySegments ?? ([] as TrackSegment[]));
   const liveAttributes = useSelectedMower((s) => s?.track.attributes ?? ({blades: false} as TrackAttributes));
 
-  const {datum: mapDatum} = useMapContext();
-  const utmDatum = useMemo(() => datumToRelative([mapDatum.long, mapDatum.lat]), [mapDatum]);
+  const {datumOrFallback} = useMapContext();
+  const utmDatum = useMemo(() => datumToRelative([datumOrFallback.long, datumOrFallback.lat]), [datumOrFallback]);
 
+  // Cache the track features, reset when the datum changes.
   const cache = useRef<TrackCache>(null);
-  if (!utmDatum) {
-    cache.current = null;
-    return {live: null, history: null};
-  }
-
-  // Reset the cache if the datum has changed.
   if (!cache.current || cache.current.datum !== utmDatum) {
     cache.current = new TrackCache(utmDatum);
   }
