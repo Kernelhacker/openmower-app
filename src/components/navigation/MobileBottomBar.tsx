@@ -1,6 +1,7 @@
 'use client';
 
 import {useSelectedMowerActiveEmergency} from '@/hooks/useMowerEvents';
+import {useSelectedMower} from '@/stores/mowersStore';
 import {Menu as MenuIcon} from '@mui/icons-material';
 import {Badge, BottomNavigation, BottomNavigationAction, Paper, useTheme} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
@@ -14,7 +15,8 @@ export default function MobileBottomBar({onMenuOpen}: MobileBottomBarProps) {
   const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
-  const navigationItems = createNavigationItems();
+  const mowerCapabilities = useSelectedMower((s) => s?.capabilities);
+  const navigationItems = createNavigationItems(mowerCapabilities);
   const activeEmergency = useSelectedMowerActiveEmergency();
 
   const handleNavigation = (path: string) => {
