@@ -138,6 +138,77 @@
       }
     },
     {
+      "name": "events.history",
+      "summary": "Returns events for today when called without params, or events for a specific date.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "date",
+          "description": "Date string (YYYYMMDD). Omit to get today's events.",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "events",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "t": {
+                "type": "number"
+              },
+              "type": {
+                "type": "string"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "job_id": {
+                "type": "string"
+              },
+              "session_id": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "t",
+              "type"
+            ],
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    {
+      "name": "events.history.list",
+      "summary": "List available event history dates.",
+      "params": [],
+      "result": {
+        "name": "dates",
+        "description": "Array of date strings in YYYYMMDD format.",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
       "name": "meta.config.defaults",
       "summary": "Get the default configuration values.",
       "params": [],

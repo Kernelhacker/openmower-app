@@ -142,6 +142,41 @@ export type Position = Omit<PositionWithAttributes, 'attributes'>;
 export type TrackAttributes = PositionWithAttributes['attributes'];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Events (from events/json topic and events.history RPC)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const baseEventSchema = z.looseObject({
+  id: z.string(),
+  t: z.number(),
+  type: z.string(),
+  x: z.number().optional(),
+  y: z.number().optional(),
+  job_id: z.string().optional(),
+  session_id: z.string().optional(),
+});
+
+export const eventSchema = z.union([
+  z.discriminatedUnion('type', [
+    baseEventSchema.extend({type: z.literal('EMERGENCY'), active: z.boolean()}),
+    baseEventSchema.extend({type: z.literal('BOOTED')}),
+    baseEventSchema.extend({type: z.literal('GPS'), available: z.boolean()}),
+    baseEventSchema.extend({type: z.literal('STATE'), state: z.string()}),
+    baseEventSchema.extend({type: z.literal('BLADES'), enabled: z.boolean()}),
+    baseEventSchema.extend({type: z.literal('DOCKING'), reason: z.string()}),
+    baseEventSchema.extend({
+      type: z.literal('AREA'),
+      area_id: z.string(),
+      area_name: z.string(),
+    }),
+  ]),
+  baseEventSchema,
+]);
+
+export type MowerEvent = z.infer<typeof eventSchema>;
+
+export const BASE_EVENT_KEYS = new Set(Object.keys(baseEventSchema.shape));
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Defaults
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

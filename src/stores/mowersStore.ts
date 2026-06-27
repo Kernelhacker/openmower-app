@@ -9,10 +9,19 @@ import {create, useStore} from 'zustand';
 import {immer} from 'zustand/middleware/immer';
 import {useConfigStore} from './configStore';
 import {
+  applyLiveEvent,
+  mowerEventDefaults,
+  seedHistoryEvents,
+  seedTodayEvents,
+  setAvailableDates,
+  type MowerEventState,
+} from './mowerEvents';
+import {
   Area,
   AreaType,
   capabilitiesSchema,
   datumSchema,
+  eventSchema,
   LegacyArea,
   LegacyMapData,
   legacyMapSchema,
@@ -47,6 +56,7 @@ class Mower {
   params: Record<string, unknown> = {};
   position: PositionWithAttributes | null = null;
   track: TrackPipeline = new TrackPipeline();
+  events: MowerEventState = mowerEventDefaults;
   params: Record<string, unknown> = {};
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
@@ -84,6 +94,7 @@ interface MowersStore {
   mqttStatuses: Record<string, MqttStatus>;
   selected: number;
   loadMowers: () => void;
+  fetchEventsForDate: (mowerId: string, date: string) => Promise<void>;
 }
 
 export const useMowersStore = create<MowersStore>()(
@@ -149,6 +160,31 @@ export const useMowersStore = create<MowersStore>()(
             client.subscribe(clientMower.prefix + 'params/json');
             client.subscribe(clientMower.prefix + 'position/json');
             client.subscribe(clientMower.prefix + 'params/json');
+            client.subscribe(clientMower.prefix + 'events/json');
+            mowers[clientMower.idx].rpc.events.history
+              .list()
+              .then((dates) => {
+                set((state) => {
+                  setAvailableDates(state.mowers[clientMower.idx].events, dates ?? []);
+                });
+              })
+              .catch(() => {
+                // server may not support events.history yet
+              });
+            mowers[clientMower.idx].rpc.events
+              .history({})
+              .then((events) => {
+                set((state) => {
+                  const parsedEvents = (events ?? []).flatMap((event) => {
+                    const parsed = eventSchema.safeParse(event);
+                    return parsed.success ? [parsed.data] : [];
+                  });
+                  seedTodayEvents(state.mowers[clientMower.idx].events, parsedEvents);
+                });
+              })
+              .catch(() => {
+                // server may not support events.history yet
+              });
             mowers[clientMower.idx].rpc.position
               .history()
               .then((result) => {
@@ -208,11 +244,39 @@ export const useMowersStore = create<MowersStore>()(
                 mower.params = JSON.parse(payload.toString()) as Record<string, unknown>;
                 mower.map.datum ??= mower.getDatumFromParams();
               });
+            } else if (partialTopic === 'events/json') {
+              set((state) => {
+                const parsed = eventSchema.safeParse(JSON.parse(payload.toString()));
+                if (parsed.success) {
+                  applyLiveEvent(state.mowers[idx].events, parsed.data);
+                }
+              });
             }
           }
         });
       }
       set({mowers, selected: 0});
+    },
+    fetchEventsForDate: async (mowerId, date) => {
+      const mower = get().mowers.find((m) => m.id === mowerId);
+      if (!mower || mower.events.loadedDates[date]) {
+        return;
+      }
+      try {
+        const events = await mower.rpc.events.history({date});
+        set((state) => {
+          const target = state.mowers.find((m) => m.id === mowerId);
+          if (target) {
+            const parsedEvents = (events ?? []).flatMap((event) => {
+              const parsed = eventSchema.safeParse(event);
+              return parsed.success ? [parsed.data] : [];
+            });
+            seedHistoryEvents(target.events, date, parsedEvents);
+          }
+        });
+      } catch {
+        // server may not support events.history yet
+      }
     },
   })),
 );

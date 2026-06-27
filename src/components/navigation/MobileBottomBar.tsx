@@ -1,7 +1,8 @@
 'use client';
 
+import {useSelectedMowerActiveEmergency} from '@/hooks/useMowerEvents';
 import {Menu as MenuIcon} from '@mui/icons-material';
-import {BottomNavigation, BottomNavigationAction, Paper, useTheme} from '@mui/material';
+import {Badge, BottomNavigation, BottomNavigationAction, Paper, useTheme} from '@mui/material';
 import {usePathname, useRouter} from 'next/navigation';
 import {createNavigationItems} from './navigationItems';
 
@@ -14,6 +15,7 @@ export default function MobileBottomBar({onMenuOpen}: MobileBottomBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const navigationItems = createNavigationItems();
+  const activeEmergency = useSelectedMowerActiveEmergency();
 
   const handleNavigation = (path: string) => {
     router.push(path);
@@ -70,7 +72,20 @@ export default function MobileBottomBar({onMenuOpen}: MobileBottomBarProps) {
             }}
           />
           {navigationItems.map((item, idx) => (
-            <BottomNavigationAction key={item.path} value={idx} label={item.label} icon={item.icon} />
+            <BottomNavigationAction
+              key={item.path}
+              value={idx}
+              label={item.label}
+              icon={
+                item.path === '/events' ? (
+                  <Badge variant="dot" color="error" invisible={!activeEmergency}>
+                    {item.icon}
+                  </Badge>
+                ) : (
+                  item.icon
+                )
+              }
+            />
           ))}
         </BottomNavigation>
       </Paper>
