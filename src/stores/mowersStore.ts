@@ -58,7 +58,6 @@ class Mower {
   track: TrackPipeline = new TrackPipeline();
   jobList: {job_id: string; epoch: number}[] | null = null;
   events: MowerEventState = mowerEventDefaults;
-  params: Record<string, unknown> = {};
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
     this.id = config.id;
