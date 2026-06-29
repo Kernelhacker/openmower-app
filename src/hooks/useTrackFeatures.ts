@@ -1,4 +1,5 @@
 import {useMapContext} from '@/contexts/MapContext';
+import {type PastTrack} from '@/hooks/useJobTrack';
 import {useSelectedMower} from '@/stores/mowersStore';
 import {type TrackAttributes} from '@/stores/schemas';
 import {
@@ -112,7 +113,7 @@ class TrackCache {
   }
 }
 
-export function useTrackFeatures(): TrackFeatures {
+export function useTrackFeatures(pastTrack: PastTrack | null = null, loading = false): TrackFeatures {
   const buffer = useSelectedMower((s) => s?.track.buffer ?? ([] as RelativePoint[]));
   const historySegments = useSelectedMower((s) => s?.track.historySegments ?? ([] as TrackSegment[]));
   const liveAttributes = useSelectedMower((s) => s?.track.attributes ?? ({blades: false} as TrackAttributes));
@@ -120,10 +121,27 @@ export function useTrackFeatures(): TrackFeatures {
   const {datumOrFallback} = useMapContext();
   const utmDatum = useMemo(() => datumToRelative([datumOrFallback.long, datumOrFallback.lat]), [datumOrFallback]);
 
-  // Cache the track features, reset when the datum changes.
+  // Track the job identity the cache was built for: null means live job.
+  const cacheJobId = useRef<string | null | undefined>(undefined);
+
+  // Reset the cache when the datum changes or when switching between jobs
+  // (including switching between live and any historical job). Without this,
+  // stale segment coordinates from the previous job bleed into the new one.
   const cache = useRef<TrackCache>(null);
-  if (!cache.current || cache.current.datum !== utmDatum) {
+  const jobId = pastTrack?.jobId ?? null;
+  if (!cache.current || cache.current.datum !== utmDatum || cacheJobId.current !== jobId) {
     cache.current = new TrackCache(utmDatum);
+    cacheJobId.current = jobId;
+  }
+
+  // While switching jobs, show nothing.
+  if (loading) {
+    return {live: null, history: null};
+  }
+
+  // When a historical job is selected, render only its segments with no live buffer.
+  if (pastTrack !== null) {
+    return cache.current.sync([], pastTrack.segments, {blades: false} as TrackAttributes);
   }
 
   // useMemo is intentionally omitted: sync() is cheap (incremental),

@@ -1,5 +1,6 @@
 'use client';
 
+import type {PastTrack} from '@/hooks/useJobTrack';
 import {useTrackFeatures, type TrackFeatures} from '@/hooks/useTrackFeatures';
 import {featureCollection, point} from '@turf/helpers';
 import type {Feature, FeatureCollection, LineString, Point} from 'geojson';
@@ -9,7 +10,6 @@ import {useMemo} from 'react';
 
 const SHOW_TRACK_POINTS = false;
 
-const layout: LineLayerSpecification['layout'] = {'line-join': 'round', 'line-cap': 'butt'};
 const linePaint: LineLayerSpecification['paint'] = {
   'line-color': '#fbb03b',
   'line-width': ['interpolate', ['exponential', 1.5], ['zoom'], 12, 1, 25, 2],
@@ -26,8 +26,17 @@ const emptyLine: Feature<LineString> = {
 const emptyLineCollection: FeatureCollection<LineString> = featureCollection([]);
 const emptyPoints: FeatureCollection<Point> = featureCollection([]);
 
-export default function TrackLayer() {
-  const {live, history} = useTrackFeatures();
+interface TrackLayerProps {
+  visible?: boolean;
+  pastTrack?: PastTrack | null;
+  loading?: boolean;
+}
+
+export default function TrackLayer({visible = true, pastTrack = null, loading = false}: TrackLayerProps) {
+  const {live, history} = useTrackFeatures(pastTrack, loading);
+
+  const visibility = visible ? 'visible' : 'none';
+  const layout: LineLayerSpecification['layout'] = {'line-join': 'round', 'line-cap': 'butt', visibility};
 
   return (
     <>

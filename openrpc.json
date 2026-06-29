@@ -87,7 +87,17 @@
     {
       "name": "position.history",
       "summary": "Returns compacted segments and the raw pending buffer for client seeding.",
-      "params": [],
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "job_id",
+          "description": "Job ID to fetch history for. Omit to get the current/live job.",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
       "result": {
         "name": "result",
         "schema": {
@@ -133,6 +143,33 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "name": "position.history.list",
+      "summary": "List available job history entries.",
+      "params": [],
+      "result": {
+        "name": "jobs",
+        "description": "Array of job history entries, each with a job_id and epoch timestamp. Sorted newest first.",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "job_id",
+              "timestamp"
+            ]
           }
         }
       }

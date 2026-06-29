@@ -56,6 +56,7 @@ class Mower {
   params: Record<string, unknown> = {};
   position: PositionWithAttributes | null = null;
   track: TrackPipeline = new TrackPipeline();
+  jobList: {job_id: string; epoch: number}[] | null = null;
   events: MowerEventState = mowerEventDefaults;
   params: Record<string, unknown> = {};
 
@@ -185,8 +186,21 @@ export const useMowersStore = create<MowersStore>()(
               .catch(() => {
                 // server may not support events.history yet
               });
+            mowers[clientMower.idx].rpc.position.history
+              .list()
+              .then((jobs) => {
+                set((state) => {
+                  state.mowers[clientMower.idx].jobList = (jobs ?? []).map((j) => ({
+                    job_id: j.job_id,
+                    epoch: j.timestamp,
+                  }));
+                });
+              })
+              .catch(() => {
+                // server may not support position.history.list yet
+              });
             mowers[clientMower.idx].rpc.position
-              .history()
+              .history({})
               .then((result) => {
                 set((state) => {
                   state.mowers[clientMower.idx].track.seedFromHistory(

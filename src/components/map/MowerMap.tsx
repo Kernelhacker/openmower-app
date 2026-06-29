@@ -1,6 +1,8 @@
 'use client';
 
 import {useFitToBounds, useMapboxDraw, useMapContext, useMapHover} from '@/contexts/MapContext';
+import {useJobTrack} from '@/hooks/useJobTrack';
+import {useMapDisplayStore} from '@/stores/mapDisplayStore';
 import {useSelectedMower} from '@/stores/mowersStore';
 import {MapData, type AreaProps} from '@/stores/schemas';
 import type {AreaFeature} from '@/types/geojson';
@@ -11,11 +13,11 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import {Box, useMediaQuery, useTheme, type SxProps} from '@mui/material';
 import {featureCollection} from '@turf/helpers';
 import type {Feature, LineString, Polygon} from 'geojson';
-import {FocusIcon, GlobeIcon, LayoutListIcon, PencilIcon} from 'lucide-react';
+import {FocusIcon, LayoutListIcon, PencilIcon} from 'lucide-react';
 import type {Map} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {RFullscreenControl, RMap} from 'maplibre-react-components';
-import {useCallback, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useEffectEvent, useMemo, useRef} from 'react';
 import {DialogOutlet, useDialog} from 'react-dialog-async';
 import AreasList from './AreasList';
 import ControlButton from './ControlButton';
@@ -27,6 +29,7 @@ import {DownloadButton} from './edit/DownloadButton';
 import EditControls from './edit/EditControls';
 import {IssuesButton} from './edit/IssuesButton';
 import {UploadButton} from './edit/UploadButton';
+import LayersButton from './LayersButton';
 import MapDialog from './MapDialog';
 import {mapStyles} from './mapStyles';
 import MowerMarker from './MowerMarker';
@@ -65,8 +68,8 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
   );
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [showAreaList, setShowAreaList] = useState(!isMobile);
-  const [showSatelliteLayer, setShowSatelliteLayer] = useState(false);
+  const {showSatelliteLayer, showTrackLayer, showAreaList, selectedJobId, setShowAreaList} = useMapDisplayStore();
+  const {pastTrack, loading: trackLoading} = useJobTrack(selectedJobId);
   const areaSettingsDialog = useDialog(AreaSettingsDialog);
   const padding = useMemo(() => ({top: 10, bottom: 10, left: 60, right: showAreaList ? 390 : 60}), [showAreaList]);
   const fitToBounds = useFitToBounds();
@@ -242,15 +245,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           title="Fit to bounds"
           onClick={() => fitToBounds(false, padding)}
         />
-        {datum && (
-          <ControlButton
-            position="top-right"
-            title="Toggle satellite layer"
-            icon={GlobeIcon}
-            active={showSatelliteLayer}
-            onClick={() => setShowSatelliteLayer(!showSatelliteLayer)}
-          />
-        )}
+        <LayersButton datum={datum} trackLoading={trackLoading} />
         <ControlButton
           position="top-right"
           icon={LayoutListIcon}
@@ -299,7 +294,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           <DockingStationMarker key={station.id} station={station} datum={datumOrFallback} isDocked={isDocked} />
         ))}
         {mowerPosition && !isDocked && <MowerMarker position={mowerPosition} datum={datumOrFallback} />}
-        <TrackLayer />
+        <TrackLayer visible={showTrackLayer} pastTrack={pastTrack} loading={trackLoading} />
         {showTeleop && <TeleopControls />}
         <DialogOutlet />
       </RMap>
