@@ -20,9 +20,10 @@ import {createPortal} from 'react-dom';
 interface LayersButtonProps {
   datum: Datum | null;
   trackLoading?: boolean;
+  editMode?: boolean;
 }
 
-export default function LayersButton({datum, trackLoading}: LayersButtonProps) {
+export default function LayersButton({datum, trackLoading, editMode}: LayersButtonProps) {
   const {container} = useRControl({position: 'top-right'});
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -89,7 +90,7 @@ export default function LayersButton({datum, trackLoading}: LayersButtonProps) {
         style={{padding: 0, position: 'relative'}}
       >
         <LayersIcon />
-        {hasPositionCapability && isViewingHistory && (
+        {hasPositionCapability && isViewingHistory && !editMode && (
           <span
             style={{
               position: 'absolute',
@@ -137,7 +138,13 @@ export default function LayersButton({datum, trackLoading}: LayersButtonProps) {
           <>
             <FormControlLabel
               sx={{mx: 0, px: 1, py: 0.5, width: '100%'}}
-              control={<Switch checked={showTrackLayer} onChange={(e) => setShowTrackLayer(e.target.checked)} />}
+              control={
+                <Switch
+                  checked={showTrackLayer && !editMode}
+                  onChange={(e) => setShowTrackLayer(e.target.checked)}
+                  disabled={editMode}
+                />
+              }
               label={
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                   Driven track
@@ -146,7 +153,7 @@ export default function LayersButton({datum, trackLoading}: LayersButtonProps) {
               }
             />
 
-            {showTrackLayer && (
+            {showTrackLayer && !editMode && (
               <Box sx={{display: 'flex', alignItems: 'center', px: 1}}>
                 <Tooltip title="Previous job">
                   <span>

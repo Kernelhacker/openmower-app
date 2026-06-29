@@ -245,7 +245,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           title="Fit to bounds"
           onClick={() => fitToBounds(false, padding)}
         />
-        <LayersButton datum={datum} trackLoading={trackLoading} />
+        <LayersButton datum={datum} trackLoading={trackLoading} editMode={editMode} />
         <ControlButton
           position="top-right"
           icon={LayoutListIcon}
@@ -294,7 +294,7 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           <DockingStationMarker key={station.id} station={station} datum={datumOrFallback} isDocked={isDocked} />
         ))}
         {mowerPosition && !isDocked && <MowerMarker position={mowerPosition} datum={datumOrFallback} />}
-        <TrackLayer visible={showTrackLayer} pastTrack={pastTrack} loading={trackLoading} />
+        <TrackLayer visible={showTrackLayer && !editMode} pastTrack={pastTrack} loading={trackLoading} />
         {showTeleop && <TeleopControls />}
         <DialogOutlet />
       </RMap>
