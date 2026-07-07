@@ -8,7 +8,7 @@ const OUTER_RADIUS = 90;
 const KNOB_RADIUS = 25;
 const DEAD_ZONE = 8;
 const DPAD_ZONE_START = 0.55;
-const DPAD_RAMP_DURATION_MS = 1500;
+const DPAD_RAMP_DURATION_MS = 500;
 const ANGULAR_FACTOR = 1.6;
 
 type DpadDirection = 'up' | 'down' | 'left' | 'right' | null;
@@ -162,12 +162,14 @@ export default function VirtualJoystick({onVelocityChange, simulatorMode = false
       }}
     >
       {/* D-pad arrows */}
-      {([
-        {dir: 'up', Icon: ChevronUp, top: 6, left: '50%', transform: 'translateX(-50%)'},
-        {dir: 'down', Icon: ChevronDown, bottom: 6, left: '50%', transform: 'translateX(-50%)'},
-        {dir: 'left', Icon: ChevronLeft, left: 6, top: '50%', transform: 'translateY(-50%)'},
-        {dir: 'right', Icon: ChevronRight, right: 6, top: '50%', transform: 'translateY(-50%)'},
-      ] as const).map(({dir, Icon, ...pos}) => (
+      {(
+        [
+          {dir: 'up', Icon: ChevronUp, top: 6, left: '50%', transform: 'translateX(-50%)'},
+          {dir: 'down', Icon: ChevronDown, bottom: 6, left: '50%', transform: 'translateX(-50%)'},
+          {dir: 'left', Icon: ChevronLeft, left: 6, top: '50%', transform: 'translateY(-50%)'},
+          {dir: 'right', Icon: ChevronRight, right: 6, top: '50%', transform: 'translateY(-50%)'},
+        ] as const
+      ).map(({dir, Icon, ...pos}) => (
         <Box
           key={dir}
           sx={{
