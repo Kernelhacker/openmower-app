@@ -28,12 +28,16 @@ import {
   mapDefaults,
   mapSchema,
   positionSchema,
+  rosParamsSchema,
+  simStateSchema,
   stateDefaults,
   stateSchema,
   type Capabilities,
   type Datum,
   type MapData,
   type PositionWithAttributes,
+  type RosParams,
+  type SimState,
   type StateOptionalPose,
   type TrackAttributes,
 } from './schemas';
@@ -53,11 +57,14 @@ class Mower {
   capabilities: Capabilities = {};
   state: StateOptionalPose = stateDefaults;
   map: MapData = mapDefaults;
-  params: Record<string, unknown> = {};
+  params: RosParams = {};
   position: PositionWithAttributes | null = null;
   track: TrackPipeline = new TrackPipeline();
   jobList: {job_id: string; epoch: number}[] | null = null;
   events: MowerEventState = mowerEventDefaults;
+  // null until a retained sim/state/json message arrives — also used as the
+  // "is this a simulator?" feature-detection flag.
+  simState: SimState | null = null;
 
   constructor(config: MowerConfig, mqttClient: MqttClient) {
     this.id = config.id;
@@ -161,6 +168,7 @@ export const useMowersStore = create<MowersStore>()(
             client.subscribe(clientMower.prefix + 'position/json');
             client.subscribe(clientMower.prefix + 'params/json');
             client.subscribe(clientMower.prefix + 'events/json');
+            client.subscribe(clientMower.prefix + 'sim/state/json');
             mowers[clientMower.idx].rpc.events.history
               .list()
               .then((dates) => {
@@ -239,7 +247,7 @@ export const useMowersStore = create<MowersStore>()(
             } else if (partialTopic === 'params/json') {
               set((state) => {
                 const mower = state.mowers[idx];
-                mower.params = JSON.parse(payload.toString()) as Record<string, unknown>;
+                mower.params = rosParamsSchema.parse(JSON.parse(payload.toString()));
                 mower.map.datum ??= mower.getDatumFromParams();
               });
             } else if (partialTopic === 'position/json') {
@@ -251,17 +259,18 @@ export const useMowersStore = create<MowersStore>()(
                   mower.track.addPoint(parsed);
                 }
               });
-            } else if (partialTopic === 'params/json') {
-              set((state) => {
-                const mower = state.mowers[idx];
-                mower.params = JSON.parse(payload.toString()) as Record<string, unknown>;
-                mower.map.datum ??= mower.getDatumFromParams();
-              });
             } else if (partialTopic === 'events/json') {
               set((state) => {
                 const parsed = eventSchema.safeParse(JSON.parse(payload.toString()));
                 if (parsed.success) {
                   applyLiveEvent(state.mowers[idx].events, parsed.data);
+                }
+              });
+            } else if (partialTopic === 'sim/state/json') {
+              set((state) => {
+                const parsed = simStateSchema.safeParse(JSON.parse(payload.toString()));
+                if (parsed.success) {
+                  state.mowers[idx].simState = parsed.data;
                 }
               });
             }

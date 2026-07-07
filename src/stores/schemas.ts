@@ -49,6 +49,23 @@ export type State = z.infer<typeof stateSchema>;
 export type StateOptionalPose = Omit<State, 'pose'> & {pose?: State['pose']};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Simulation control (from sim/state/json topic and sim.* RPCs)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const simStateSchema = z.object({
+  emergency_active: z.boolean(),
+  emergency_latch: z.boolean(),
+  emergency_reason: z.number().int(),
+  movement_allowed: z.boolean(),
+  gps_good: z.boolean(),
+  battery_voltage: z.number(),
+  charging: z.boolean(),
+  joy_override: z.boolean(),
+});
+
+export type SimState = z.infer<typeof simStateSchema>;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Map
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -207,3 +224,22 @@ export const stateDefaults: StateOptionalPose = {
   is_charging: false,
   pose: undefined,
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// ROS params
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const rosParamsSchema = z
+  .object({
+    '/ll/services/power/battery_full_voltage': z.number(),
+    '/ll/services/power/battery_empty_voltage': z.number(),
+    '/ll/services/power/battery_critical_voltage': z.number(),
+    '/ll/services/power/battery_critical_high_voltage': z.number(),
+    '/ll/services/gps/datum_lat': z.number(),
+    '/ll/services/gps/datum_long': z.number(),
+    '/ll/services/gps/datum_height': z.number(),
+  })
+  .partial()
+  .catchall(z.unknown());
+
+export type RosParams = z.infer<typeof rosParamsSchema>;

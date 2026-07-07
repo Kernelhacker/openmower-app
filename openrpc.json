@@ -261,6 +261,166 @@
           "description": "Keys are relative file paths, values are YAML file contents as strings"
         }
       }
+    },
+    {
+      "name": "sim.emergency.set",
+      "summary": "Trigger or clear a latched emergency in the simulator.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "active",
+          "description": "true triggers a latched emergency, false clears it.",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "No result is returned if successful.",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "sim.movement.set",
+      "summary": "Allow or block physical movement to simulate a stuck robot.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "allowed",
+          "description": "true = robot moves normally, false = robot is stuck.",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "No result is returned if successful.",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "sim.battery.set",
+      "summary": "Set the simulated battery pack voltage.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "voltage",
+          "description": "Exact pack voltage to set (V).",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "No result is returned if successful.",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "sim.gps.set",
+      "summary": "Set the simulated GPS quality.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "good",
+          "description": "true = RTK fix (~2 cm), false = no RTK fix (~1 m).",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "No result is returned if successful.",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "sim.joy_override.set",
+      "summary": "Enable or disable joystick (manual drive) override in the simulator.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "enabled",
+          "description": "true = joystick override active (manual drive), false = normal autonomous operation.",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "No result is returned if successful.",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "sim.dock.move",
+      "summary": "Drive the simulated robot onto the dock and start charging.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "description": "No result is returned if successful.",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "sim.displace",
+      "summary": "Teleport the robot by (dx, dy) meters and dheading radians to simulate a GPS jump.",
+      "paramStructure": "by-name",
+      "params": [
+        {
+          "name": "dx",
+          "description": "X offset in meters (default 0).",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "dy",
+          "description": "Y offset in meters (default 0).",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "dheading",
+          "description": "Heading offset in radians (default 0).",
+          "required": false,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "No result is returned if successful.",
+        "schema": {
+          "type": "null"
+        }
+      }
     }
   ]
 }

@@ -65,7 +65,7 @@ export interface ObjectHicl3T4F { [key: string]: any; }
  * Generated! Represents an alias to any of the provided schemas
  *
  */
-export type AnyOfObjectHAgrRKSzStringDoaGddGAStringDoaGddGAStringZDJW5SIjUnorderedSetOfStringDoaGddGADvj0XlFaNullQu0Arl1FStringZDJW5SIjStringDoaGddGAObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1WsUnorderedSetOfObjectOfNumberHo1ClIqDStringDoaGddGAJFf7IL19E3WiTXvKUnorderedSetOfObjectOfNumberHo1ClIqDNumberHo1ClIqDStringDoaGddGANumberHo1ClIqDStringDoaGddGAStringDoaGddGAStringDoaGddGABooleanVyG3AEThEg3PskfBvWnyETupUnorderedSetOfStringDoaGddGADvj0XlFaObjectHicl3T4F = ObjectHAgrRKSz | StringDoaGddGA | StringZDJW5SIj | UnorderedSetOfStringDoaGddGADvj0XlFa | NullQu0Arl1F | ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1Ws | UnorderedSetOfObjectOfNumberHo1ClIqDStringDoaGddGAJFf7IL19E3WiTXvK | UnorderedSetOfObjectOfNumberHo1ClIqDNumberHo1ClIqDStringDoaGddGANumberHo1ClIqDStringDoaGddGAStringDoaGddGAStringDoaGddGABooleanVyG3AEThEg3PskfBvWnyETup | ObjectHicl3T4F;
+export type AnyOfObjectHAgrRKSzStringDoaGddGAStringDoaGddGABooleanVyG3AEThBooleanVyG3AEThNumberHo1ClIqDBooleanVyG3AEThBooleanVyG3AEThNumberHo1ClIqDNumberHo1ClIqDNumberHo1ClIqDStringZDJW5SIjUnorderedSetOfStringDoaGddGADvj0XlFaNullQu0Arl1FStringZDJW5SIjStringDoaGddGAObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1WsUnorderedSetOfObjectOfNumberHo1ClIqDStringDoaGddGAJFf7IL19E3WiTXvKUnorderedSetOfObjectOfNumberHo1ClIqDNumberHo1ClIqDStringDoaGddGANumberHo1ClIqDStringDoaGddGAStringDoaGddGAStringDoaGddGABooleanVyG3AEThEg3PskfBvWnyETupUnorderedSetOfStringDoaGddGADvj0XlFaObjectHicl3T4FNullQu0Arl1FNullQu0Arl1FNullQu0Arl1FNullQu0Arl1FNullQu0Arl1FNullQu0Arl1FNullQu0Arl1F = ObjectHAgrRKSz | StringDoaGddGA | BooleanVyG3AETh | NumberHo1ClIqD | StringZDJW5SIj | UnorderedSetOfStringDoaGddGADvj0XlFa | NullQu0Arl1F | ObjectOfUnorderedSetOfObjectOfUnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GObjectOfStringDoaGddGAStringDoaGddGABooleanVyG3AETh8PZSKeKMFruGLaE4Gkga5QR4UnorderedSetOfUnorderedSetOfNumberHo1ClIqDAokMKuEfbuExLS5GA4JKc1Ws | UnorderedSetOfObjectOfNumberHo1ClIqDStringDoaGddGAJFf7IL19E3WiTXvK | UnorderedSetOfObjectOfNumberHo1ClIqDNumberHo1ClIqDStringDoaGddGANumberHo1ClIqDStringDoaGddGAStringDoaGddGAStringDoaGddGABooleanVyG3AEThEg3PskfBvWnyETup | ObjectHicl3T4F;
 
 export class OpenMowerRpc extends OpenMowerBaseRpc {
   rpc = {
@@ -123,5 +123,47 @@ export class OpenMowerRpc extends OpenMowerBaseRpc {
       */
       list: async (): Promise<UnorderedSetOfStringDoaGddGADvj0XlFa> => this.call('events.history.list'),
     }),
+  };
+  sim = {
+    emergency: {
+      /**
+      * Trigger or clear a latched emergency in the simulator.
+      */
+      set: async (args: {active: BooleanVyG3AETh}): Promise<void> => this.call('sim.emergency.set', args),
+    },
+    movement: {
+      /**
+      * Allow or block physical movement to simulate a stuck robot.
+      */
+      set: async (args: {allowed: BooleanVyG3AETh}): Promise<void> => this.call('sim.movement.set', args),
+    },
+    battery: {
+      /**
+      * Set the simulated battery pack voltage.
+      */
+      set: async (args: {voltage: NumberHo1ClIqD}): Promise<void> => this.call('sim.battery.set', args),
+    },
+    gps: {
+      /**
+      * Set the simulated GPS quality.
+      */
+      set: async (args: {good: BooleanVyG3AETh}): Promise<void> => this.call('sim.gps.set', args),
+    },
+    joy_override: {
+      /**
+      * Enable or disable joystick (manual drive) override in the simulator.
+      */
+      set: async (args: {enabled: BooleanVyG3AETh}): Promise<void> => this.call('sim.joy_override.set', args),
+    },
+    dock: {
+      /**
+      * Drive the simulated robot onto the dock and start charging.
+      */
+      move: async (): Promise<void> => this.call('sim.dock.move'),
+    },
+    /**
+    * Teleport the robot by (dx, dy) meters and dheading radians to simulate a GPS jump.
+    */
+    displace: async (args: {dx?: NumberHo1ClIqD, dy?: NumberHo1ClIqD, dheading?: NumberHo1ClIqD}): Promise<void> => this.call('sim.displace', args),
   };
 }
