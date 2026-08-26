@@ -36,6 +36,7 @@ import MowerMarker from './MowerMarker';
 import SimulatorButton from './SimulatorButton';
 import TeleopControls from './teleop/TeleopControls';
 import TrackLayer from './TrackLayer';
+import ObstacleLayer from './ObstacleLayer';
 
 interface MowerMapProps {
   mapData: MapData;
@@ -71,7 +72,15 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
   );
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const {showSatelliteLayer, showTrackLayer, showAreaList, selectedJobId, setShowAreaList} = useMapDisplayStore();
+  const {
+    showSatelliteLayer,
+    showTrackLayer,
+    showTemporaryObstacles,
+    showInflationLayer,
+    showAreaList,
+    selectedJobId,
+    setShowAreaList,
+  } = useMapDisplayStore();
   const {pastTrack, loading: trackLoading} = useJobTrack(selectedJobId);
   const areaSettingsDialog = useDialog(AreaSettingsDialog);
   const padding = useMemo(() => ({top: 10, bottom: 10, left: 60, right: showAreaList ? 390 : 60}), [showAreaList]);
@@ -298,6 +307,11 @@ export function MowerMap({mapData, saveMapToMower, sx}: MowerMapProps) {
           <DockingStationMarker key={station.id} station={station} datum={datumOrFallback} isDocked={isDocked} />
         ))}
         {mowerPosition && !isDocked && <MowerMarker position={mowerPosition} datum={datumOrFallback} />}
+        <ObstacleLayer
+          datum={datumOrFallback}
+          visible={showTemporaryObstacles && !editMode}
+          showInflation={showInflationLayer}
+        />
         <TrackLayer visible={showTrackLayer && !editMode} pastTrack={pastTrack} loading={trackLoading} />
         {showTeleop && <TeleopControls simulatorMode={manualDrive} />}
         <DialogOutlet />

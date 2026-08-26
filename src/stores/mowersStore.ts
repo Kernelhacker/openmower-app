@@ -62,6 +62,7 @@ class Mower {
   track: TrackPipeline = new TrackPipeline();
   jobList: {job_id: string; epoch: number}[] | null = null;
   events: MowerEventState = mowerEventDefaults;
+  temporaryObstacles: Array<{id?: string; x: number; y: number; radius: number; polygon?: Array<{x: number; y: number}>}> = [];
   // null until a retained sim/state/json message arrives — also used as the
   // "is this a simulator?" feature-detection flag.
   simState: SimState | null = null;
@@ -264,6 +265,36 @@ export const useMowersStore = create<MowersStore>()(
                 const parsed = eventSchema.safeParse(JSON.parse(payload.toString()));
                 if (parsed.success) {
                   applyLiveEvent(state.mowers[idx].events, parsed.data);
+                  const mower = state.mowers[idx];
+                  const eventData = parsed.data as Record<string, unknown>;
+                  if (eventData.type === 'OBSTACLE_ADDED' || eventData.type === 'OBSTACLE_DETECTED') {
+                    if (typeof eventData.obstacle_x === 'number' && typeof eventData.obstacle_y === 'number') {
+                      const obsX = eventData.obstacle_x;
+                      const obsY = eventData.obstacle_y;
+                      const radius = typeof eventData.radius === 'number' ? eventData.radius : 0.45;
+                      const poly = Array.isArray(eventData.polygon) ? eventData.polygon : undefined;
+                      const exists = mower.temporaryObstacles.some((o) => Math.hypot(o.x - obsX, o.y - obsY) < 0.2);
+                      if (!exists) {
+                        mower.temporaryObstacles.push({
+                          id: `obs-${Date.now()}`,
+                          x: obsX,
+                          y: obsY,
+                          radius,
+                          polygon: poly,
+                        });
+                      }
+                    }
+                  } else if (eventData.type === 'TEMPORARY_OBSTACLES') {
+                    if (Array.isArray(eventData.obstacles)) {
+                      mower.temporaryObstacles = eventData.obstacles;
+                    }
+                  } else if (
+                    eventData.type === 'JOB_COMPLETE' ||
+                    eventData.type === 'TEMPORARY_OBSTACLES_CLEARED' ||
+                    (eventData.type === 'STATE' && eventData.state === 'IDLE')
+                  ) {
+                    mower.temporaryObstacles = [];
+                  }
                 }
               });
             } else if (partialTopic === 'sim/state/json') {

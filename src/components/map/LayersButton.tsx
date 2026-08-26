@@ -31,9 +31,13 @@ export default function LayersButton({datum, trackLoading, editMode}: LayersButt
   const {
     showSatelliteLayer,
     showTrackLayer,
+    showTemporaryObstacles,
+    showInflationLayer,
     selectedJobId,
     setShowSatelliteLayer,
     setShowTrackLayer,
+    setShowTemporaryObstacles,
+    setShowInflationLayer,
     setSelectedJobId,
   } = useMapDisplayStore();
 
@@ -133,6 +137,33 @@ export default function LayersButton({datum, trackLoading, editMode}: LayersButt
           }
           label="Satellite"
         />
+
+        <FormControlLabel
+          sx={{mx: 0, px: 1, py: 0.5, width: '100%'}}
+          control={
+            <Switch
+              checked={showTemporaryObstacles && !editMode}
+              onChange={(e) => setShowTemporaryObstacles(e.target.checked)}
+              disabled={editMode}
+            />
+          }
+          label="Temporary Obstacles"
+        />
+
+        {showTemporaryObstacles && (
+          <FormControlLabel
+            sx={{mx: 0, px: 1, py: 0.5, pl: 3, width: '100%'}}
+            control={
+              <Switch
+                size="small"
+                checked={showInflationLayer && !editMode}
+                onChange={(e) => setShowInflationLayer(e.target.checked)}
+                disabled={editMode}
+              />
+            }
+            label={<Typography variant="body2">Inflation safety zones</Typography>}
+          />
+        )}
 
         {hasPositionCapability && (
           <>

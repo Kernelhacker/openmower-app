@@ -10,6 +10,7 @@ import {
   GpsOff as GpsUnavailableIcon,
   Layers as AreaIcon,
   NotificationsActive as EmergencyActiveIcon,
+  ReportProblem as ObstacleIcon,
   HelpOutline as UnknownEventIcon,
   Sync as StateIcon,
 } from '@mui/icons-material';
@@ -19,6 +20,10 @@ export function getEventTypeIcon(type: string): ReactElement {
   switch (type) {
     case 'EMERGENCY':
       return <EmergencyActiveIcon color="error" fontSize="small" />;
+    case 'OBSTACLE_DETECTED':
+    case 'OBSTACLE_ADDED':
+    case 'OBSTACLE_REROUTING':
+      return <ObstacleIcon color="warning" fontSize="small" />;
     case 'BOOTED':
       return <BootIcon color="primary" fontSize="small" />;
     case 'GPS':
