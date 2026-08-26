@@ -106,7 +106,7 @@ export default function ObstacleLayer({datum, visible = true, showInflation = tr
       <RLayer
         id="temporary-obstacles-inflation-line"
         source="temporary-obstacles-inflation-source"
-        type="fill"
+        type="line"
         layout={{visibility: inflVisibility}}
         paint={inflationLinePaint}
       />
