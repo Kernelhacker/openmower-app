@@ -234,6 +234,7 @@ export const temporaryObstacleSchema = z.object({
   x: z.number(),
   y: z.number(),
   radius: z.number().default(0.45),
+  heading: z.number().optional(),
   polygon: z.array(z.object({x: z.number(), y: z.number()})).optional(),
 });
 export type TemporaryObstacle = z.infer<typeof temporaryObstacleSchema>;

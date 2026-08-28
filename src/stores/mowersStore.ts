@@ -272,6 +272,7 @@ export const useMowersStore = create<MowersStore>()(
                       const obsX = eventData.obstacle_x;
                       const obsY = eventData.obstacle_y;
                       const radius = typeof eventData.radius === 'number' ? eventData.radius : 0.45;
+                      const heading = typeof eventData.heading === 'number' ? eventData.heading : undefined;
                       const poly = Array.isArray(eventData.polygon) ? eventData.polygon : undefined;
                       const exists = mower.temporaryObstacles.some((o) => Math.hypot(o.x - obsX, o.y - obsY) < 0.2);
                       if (!exists) {
@@ -280,6 +281,7 @@ export const useMowersStore = create<MowersStore>()(
                           x: obsX,
                           y: obsY,
                           radius,
+                          heading,
                           polygon: poly,
                         });
                       }
