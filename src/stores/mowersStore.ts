@@ -39,6 +39,7 @@ import {
   type RosParams,
   type SimState,
   type StateOptionalPose,
+  type TemporaryObstacle,
   type TrackAttributes,
 } from './schemas';
 
@@ -62,7 +63,7 @@ class Mower {
   track: TrackPipeline = new TrackPipeline();
   jobList: {job_id: string; epoch: number}[] | null = null;
   events: MowerEventState = mowerEventDefaults;
-  temporaryObstacles: Array<{id?: string; x: number; y: number; radius: number; polygon?: Array<{x: number; y: number}>}> = [];
+  temporaryObstacles: TemporaryObstacle[] = [];
   // null until a retained sim/state/json message arrives — also used as the
   // "is this a simulator?" feature-detection flag.
   simState: SimState | null = null;
