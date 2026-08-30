@@ -190,6 +190,43 @@ export const useMowersStore = create<MowersStore>()(
                     return parsed.success ? [parsed.data] : [];
                   });
                   seedTodayEvents(state.mowers[clientMower.idx].events, parsedEvents);
+
+                  // Restore any active temporary obstacles from event history
+                  const activeObstacles: TemporaryObstacle[] = [];
+                  for (const ev of parsedEvents) {
+                    const e = ev as Record<string, unknown>;
+                    if (
+                      e.type === 'JOB_COMPLETE' ||
+                      e.type === 'TEMPORARY_OBSTACLES_CLEARED' ||
+                      (e.type === 'STATE' && e.state === 'IDLE')
+                    ) {
+                      activeObstacles.length = 0;
+                    } else if (e.type === 'OBSTACLE_ADDED' || e.type === 'OBSTACLE_DETECTED') {
+                      if (typeof e.obstacle_x === 'number' && typeof e.obstacle_y === 'number') {
+                        const obsX = e.obstacle_x;
+                        const obsY = e.obstacle_y;
+                        const radius = typeof e.radius === 'number' ? e.radius : 0.45;
+                        const heading = typeof e.heading === 'number' ? e.heading : undefined;
+                        const poly = Array.isArray(e.polygon) ? (e.polygon as Array<{x: number; y: number}>) : undefined;
+                        const exists = activeObstacles.some((o) => Math.hypot(o.x - obsX, o.y - obsY) < 0.2);
+                        if (!exists) {
+                          activeObstacles.push({
+                            id: `obs-${e.t ?? Date.now()}`,
+                            x: obsX,
+                            y: obsY,
+                            radius,
+                            heading,
+                            polygon: poly,
+                          });
+                        }
+                      }
+                    } else if (e.type === 'TEMPORARY_OBSTACLES' && Array.isArray(e.obstacles)) {
+                      activeObstacles.splice(0, activeObstacles.length, ...(e.obstacles as TemporaryObstacle[]));
+                    }
+                  }
+                  if (state.mowers[clientMower.idx].temporaryObstacles.length === 0 && activeObstacles.length > 0) {
+                    state.mowers[clientMower.idx].temporaryObstacles = activeObstacles;
+                  }
                 });
               })
               .catch(() => {
@@ -298,6 +335,17 @@ export const useMowersStore = create<MowersStore>()(
                   ) {
                     mower.temporaryObstacles = [];
                   }
+                }
+              });
+            } else if (partialTopic === 'temporary_obstacles/json') {
+              set((state) => {
+                try {
+                  const json = JSON.parse(payload.toString());
+                  if (Array.isArray(json)) {
+                    state.mowers[idx].temporaryObstacles = json as TemporaryObstacle[];
+                  }
+                } catch {
+                  // ignore parse error
                 }
               });
             } else if (partialTopic === 'sim/state/json') {
